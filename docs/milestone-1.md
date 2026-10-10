@@ -39,10 +39,10 @@ Each preview line printed by `npm run preview` includes the matching viewer URL,
 
 ## Results
 
-These were measured on 2026-10-10 on a local merge of main with #2 @ fe5d555, #4 @ 2f6b48e, #3 @ 5f371e0 and #6.
+These were measured on 2026-10-10 on a local merge of main with #2 @ 7933b1c, #4 @ 2f6b48e, #3 @ 5f371e0 and #6.
 
 - `npm test`: **65/65 pass, 0 skipped**. That includes the viewer's integration tests against the real `src/scene/index.js`: walk heights on the plaza, deck and upper terrace; walkers not tunnelling across the Lake; geometry visible in every viewpoint.
-- Scene: **14 meshes, 138,554 vertices, 86,910 triangles, 5.40 MB of GPU buffers**, built and normalized in about 56 ms in Node.
+- Scene: **14 meshes, 138,344 vertices, 86,840 triangles, 5.39 MB of GPU buffers**, built and normalized in about 56 ms in Node.
   - Landscape: 49k triangles, 88 Mall elms and 420 scattered trees.
   - Terrace and fountain: 37.5k triangles.
 
@@ -69,6 +69,7 @@ These were measured on 2026-10-10 on a local merge of main with #2 @ fe5d555, #4
 | Terrain filled the arcade arches and the Mall stair cut | landscape | fe5d555 (terrain at or below -0.2 inside the footprint, per #7) |
 | A walker could tunnel across the Lake to the new far bank in one long step | viewer | 5f371e0 (0.5 m sub-steps) |
 | The angel's lily covered her face | terrace | 2f6b48e |
+| A pale strip on the far bank (the plaza flattening had no north limit) | landscape | d51f7fa |
 
 ## Not verified / known limitations
 
@@ -77,4 +78,3 @@ These were measured on 2026-10-10 on a local merge of main with #2 @ fe5d555, #4
 - Dimensions are approximate and the geography has not been checked against primary sources.
 - Walk mode follows ground height and stays out of the Lake, but has no wall collisions.
 - The scene edge is visible from high orbit views (open item on #7).
-- A pale strip on the far (Ramble) bank around x 0..60 shows in the overview. It has been reported to landscape and is still unexplained.
