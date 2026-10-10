@@ -92,7 +92,7 @@ The landscape fixes made in response to those renders were:
 | Terrain z-fighting with the deck paving | b95edfd / fe5d555 | builder's integration on #2@fe5d555: 65/65 tests, arches open |
 | Green terrain filling the arcade arches | fe5d555 | the same run |
 | Pale strip on the far bank (plaza flattening and paving colour leaked north) | d51f7fa | regression test; builder's re-render on #2@7933b1c (65/65 tests, 86,840 triangles, 5.39 MB): strip gone, arches clear |
-| Scene edge visible in the overview | viewer's spawn-centred start view (#3@5f371e0) | builder's re-render |
+| Scene edge visible in the overview | the viewer's spawn-centred start view (#3@5f371e0) and edge fog within ~40 m of bounds (#3@8568a24) | viewer suite 42/42 on the latest heads; no re-render with fog yet |
 
 This agent session can only run `node --test`, so it has not produced any images itself.
 
@@ -112,8 +112,8 @@ This agent session can only run `node --test`, so it has not produced any images
 - Beside the deck ends (\|x\| just over 50, z ≈ 32–40), the ground is still
   rising and can sit a few metres below the deck. This reads like a retaining
   wall, and the terrace module may want an end wall there.
-- The terrain ends at a hard edge (340 m × 472 m), which shows in high overview
-  shots. Distance fog or a camera limit in the viewer would hide it.
+- The terrain ends at a hard edge (340 m × 472 m). The viewer's edge fog (#3)
+  hides it; the landscape itself has no edge skirt.
 - Terrain under the plaza is coloured as paving, so it reads correctly even if
   the slab is not loaded.
 
