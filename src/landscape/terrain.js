@@ -1,0 +1,86 @@
+import { LAYOUT, COLORS, shoreZ } from './layout.js';
+import { createMesh, addVertex, normalize, smoothstep, lerp } from './mesh.js';
+
+// Gentle deterministic undulation (sum of sines) for natural lawns/banks.
+function undulation(x, z) {
+  return (
+    0.5 * Math.sin(x * 0.045 + 1.3) * Math.cos(z * 0.038 - 0.4) +
+    0.3 * Math.sin(x * 0.11 - z * 0.07 + 2.1) +
+    0.2 * Math.cos(x * 0.19 + z * 0.13)
+  );
+}
+
+// 1 on the lower-terrace pavement, falling to 0 just outside it.
+export function plazaWeight(x, z) {
+  const { plaza } = LAYOUT;
+  const ax = Math.abs(x);
+  return (1 - smoothstep(plaza.halfWidth, plaza.halfWidth + 8, ax)) * (1 - smoothstep(plaza.southZ, plaza.southZ + 4, z));
+}
+
+// Ground height (metres) at park coordinates (x, z). Includes the lake bed.
+// Terrace architecture (stairs, arcade, fountain) sits on top of this.
+export function heightAt(x, z) {
+  const { plaza, upper, lake } = LAYOUT;
+  const ax = Math.abs(x);
+  const s = z - shoreZ(x); // > 0 on land, < 0 in the Lake
+  const p = plazaWeight(x, z);
+  const nearPlaza = 1 - smoothstep(plaza.halfWidth, plaza.halfWidth + 14, ax);
+  const n = undulation(x, z);
+
+  // Lower ground: lawns/woods sloping down to the shore, flattened on the plaza.
+  let low = 1.2 + 0.9 * n + 0.05 * Math.max(0, z - plaza.northZ) * (1 - nearPlaza);
+  low = lerp(0.15, low, smoothstep(0, 14, s));
+  low = lerp(low, 0, p);
+
+  // Upper level: near flat along the Mall, undulating further out.
+  const high = upper.height + 0.6 * n * smoothstep(25, 50, ax);
+
+  // Hard step under the terrace (architecture fills it), soft wooded slope on the flanks.
+  const ramp = lerp(30, 3, nearPlaza);
+  const u = smoothstep(upper.startZ - ramp, upper.startZ, z);
+  const land = lerp(low, high, u);
+
+  if (s >= 0) return land;
+  const depth = Math.min(lake.maxDepth, 0.5 + -s * 0.18);
+  return Math.min(land, lake.waterLevel - depth);
+}
+
+export function groundColor(x, z, y) {
+  const s = z - shoreZ(x);
+  if (s < 0) return COLORS.lakeBed;
+  if (plazaWeight(x, z) > 0.5) return COLORS.plaza;
+  if (s < 2.5) return COLORS.bank;
+  const t = 0.5 + 0.5 * Math.sin(x * 0.07 + z * 0.05) * Math.cos(z * 0.09 - x * 0.03);
+  const g = COLORS.grass;
+  const d = COLORS.grassDry;
+  return [lerp(g[0], d[0], t * 0.5), lerp(g[1], d[1], t * 0.5), lerp(g[2], d[2], t * 0.5)];
+}
+
+export function buildTerrainMesh() {
+  const { bounds, cellSize } = LAYOUT;
+  const mesh = createMesh('terrain');
+  const nx = Math.round((bounds.maxX - bounds.minX) / cellSize) + 1;
+  const nz = Math.round((bounds.maxZ - bounds.minZ) / cellSize) + 1;
+  const e = 0.5;
+  for (let j = 0; j < nz; j++) {
+    for (let i = 0; i < nx; i++) {
+      const x = bounds.minX + i * cellSize;
+      const z = bounds.minZ + j * cellSize;
+      const y = heightAt(x, z);
+      const n = normalize([heightAt(x - e, z) - heightAt(x + e, z), 2 * e, heightAt(x, z - e) - heightAt(x, z + e)]);
+      addVertex(mesh, [x, y, z], n, groundColor(x, z, y));
+    }
+  }
+  for (let j = 0; j < nz - 1; j++) {
+    for (let i = 0; i < nx - 1; i++) {
+      const a = j * nx + i;
+      const b = a + 1;
+      const c = a + nx;
+      const d = c + 1;
+      // Counter-clockwise seen from above (+Y).
+      mesh.indices.push(a, c, b, b, c, d);
+    }
+  }
+  mesh.grid = { nx, nz, cellSize };
+  return mesh;
+}
