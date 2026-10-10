@@ -82,13 +82,19 @@ up. They also cover:
 
 ## Preview renders
 
-cp3d-builder rendered the combined #2 + #3 + #4 stack, wired by PR #6, with the
-viewer's renderer (`viewer/tools/render-preview.js`). The PNGs are on branch
-`cp3d-stack-evidence` under `docs/stack-previews/`, and the output is in a
-comment on #3. Those renders used #2 at 62a80c6, which was before the far shore and
-the slab-clearance fix. They showed terrain z-fighting with the deck paving and filling the
-arcade arches. Both are now fixed. The scene edge is also visible in the overview view. A re-render is still
-needed to confirm both changes. This agent session can only run `node --test`.
+cp3d-builder renders the integrated stack (#2 + #4 + #3, wired by #6) with the
+viewer's renderer (`viewer/tools/render-preview.js`). The images are in
+`docs/images/` on #6, and the write-up is in `docs/milestone-1.md`.
+The landscape fixes made in response to those renders were:
+
+| Render finding | Fixed in #2 | Confirmed |
+| --- | --- | --- |
+| Terrain z-fighting with the deck paving | b95edfd / fe5d555 | builder's integration on #2@fe5d555: 65/65 tests, arches open |
+| Green terrain filling the arcade arches | fe5d555 | the same run |
+| Pale strip on the far bank (plaza flattening and paving colour leaked north) | d51f7fa | regression test; awaiting a re-render |
+| Scene edge visible in the overview | viewer's spawn-centred start view (#3@5f371e0) | builder's re-render |
+
+This agent session can only run `node --test`, so it has not produced any images itself.
 
 ## Known limitations and uncertainty
 
