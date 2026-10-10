@@ -7,6 +7,7 @@ import { existsSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { normalizeScene, sceneStats } from '../src/scene-data.js';
 import { createCamera, eyePosition, setMode, walk } from '../src/camera.js';
+// Every walk() below is subject to MAX_STEP_HEIGHT, so these checks also cover wall blocking.
 import { applyViewParams } from '../src/view-params.js';
 import { renderScene, DEFAULT_VIEWS } from '../tools/render-preview.js';
 import { SKY_COLOR } from '../src/renderer.js';
@@ -64,6 +65,20 @@ test('walk mode stands on the plaza, deck and upper terrace, not in the Lake', {
   walk(cam, 1, 0, 30);
   assert.ok(scene.canWalk(cam.walk.position[0], cam.walk.position[2]));
   assert.ok(cam.walk.position[2] > -60, `walker stopped at z=${cam.walk.position[2]}`);
+});
+
+test('the arcade wall blocks the walker; the grand stairs lead up to the deck', { skip }, () => {
+  const scene = normalizeScene(raw);
+  const cam = createCamera(scene);
+  // East of the stairs (x=40), walking south into the facade at z=36: stays on the plaza.
+  applyViewParams(cam, new URLSearchParams(`mode=walk&x=40&z=30&yaw=${Math.PI}`));
+  walk(cam, 1, 0, 5);
+  assert.ok(cam.walk.position[2] < 36.5, `walked into the facade to z=${cam.walk.position[2]}`);
+  assert.ok(Math.abs(cam.walk.position[1]) < 0.5);
+  // Up the east grand stair (x 16..28, z 24..36) at a frame-sized pace.
+  applyViewParams(cam, new URLSearchParams(`mode=walk&x=22&z=20&yaw=${Math.PI}`));
+  for (let i = 0; i < 60 * 8; i++) walk(cam, 1, 0, 1 / 60);
+  assert.ok(Math.abs(cam.walk.position[1] - 5.5) < 0.5, `stair top at y=${cam.walk.position[1]}, z=${cam.walk.position[2]}`);
 });
 
 test('every default viewpoint shows scene geometry', { skip }, () => {

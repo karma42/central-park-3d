@@ -135,8 +135,11 @@ export function pan(cam, right, forward) {
  * Walk by an input vector over dt seconds. forward/right in [-1,1]; run multiplies speed.
  * Movement is horizontal; height follows the ground; position is clamped to scene bounds.
  * Long moves are split into short sub-steps so canWalk cannot be tunnelled through.
+ * A sub-step is also refused when the ground changes by more than MAX_STEP_HEIGHT: walls,
+ * deck edges and drops block the walker, stairs modelled as treads stay climbable.
  */
 export const WALK_SUBSTEP = 0.5; // metres
+export const MAX_STEP_HEIGHT = 0.6; // metres per sub-step (two stair risers)
 
 export function walk(cam, forward, right, dt, run = false) {
   const len = Math.hypot(forward, right);
@@ -149,12 +152,15 @@ export function walk(cam, forward, right, dt, run = false) {
   const step = distance / steps;
   let x = w.position[0], z = w.position[2];
   for (let i = 0; i < steps; i++) {
+    const h = cam.ground(x, z);
+    const ok = (px, pz) =>
+      (!cam.canWalk || cam.canWalk(px, pz)) && Math.abs(cam.ground(px, pz) - h) <= MAX_STEP_HEIGHT;
     const nx = clamp(x + dx * step, cam.bounds.min[0], cam.bounds.max[0]);
     const nz = clamp(z + dz * step, cam.bounds.min[2], cam.bounds.max[2]);
-    if (!cam.canWalk || cam.canWalk(nx, nz)) { x = nx; z = nz; }
+    if (ok(nx, nz)) { x = nx; z = nz; }
     // Slide along whichever axis is still walkable, otherwise stay put.
-    else if (cam.canWalk(nx, z)) x = nx;
-    else if (cam.canWalk(x, nz)) z = nz;
+    else if (ok(nx, z)) x = nx;
+    else if (ok(x, nz)) z = nz;
   }
   w.position[0] = x;
   w.position[2] = z;

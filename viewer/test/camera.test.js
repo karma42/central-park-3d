@@ -105,6 +105,29 @@ test('a long walk step cannot tunnel across a thin unwalkable strip', () => {
   assert.ok(cam.walk.position[2] > -12, `crossed the strip: z=${cam.walk.position[2]}`);
 });
 
+test('walls block the walker; stairs of normal risers can be climbed', () => {
+  // Plaza at y=0 for z<10; a 5.5 m deck for z>=10, reachable only by a stair at |x|<3.
+  const riser = 0.17, tread = 0.33;
+  const ground = (x, z) => {
+    if (z < 10) return 0;
+    if (Math.abs(x) < 3) return Math.min(5.5, Math.ceil((z - 10 + 1e-9) / tread) * riser);
+    return 5.5;
+  };
+  const cam = createCamera(scene({ groundHeight: ground, spawn: { position: [20, 0, 0], yaw: Math.PI, pitch: 0 } }));
+  cam.mode = 'walk';
+  walk(cam, 1, 0, 10); // yaw π walks toward +Z, straight into the wall
+  assert.ok(cam.walk.position[2] < 10, `walked through the wall to z=${cam.walk.position[2]}`);
+  near(cam.walk.position[1], 0);
+  cam.walk.position = [0, 0, 0];
+  walk(cam, 1, 0, 15); // up the stair
+  assert.ok(cam.walk.position[2] > 30, `stuck on the stair at z=${cam.walk.position[2]}`);
+  near(cam.walk.position[1], 5.5);
+  // Small steps (one frame at a time) climb too.
+  cam.walk.position = [0, 0, 0];
+  for (let i = 0; i < 600; i++) walk(cam, 1, 0, 1 / 60);
+  near(cam.walk.position[1], 5.5);
+});
+
 test('zoom and pitch limits hold', () => {
   const cam = createCamera(scene());
   zoom(cam, 1e-6);
