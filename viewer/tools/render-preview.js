@@ -11,20 +11,24 @@ import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { deflateSync } from 'node:zlib';
-import { normalizeScene, sceneStats } from '../src/scene-data.js';
+import { normalizeScene, sceneStats, meshBoundingSphere } from '../src/scene-data.js';
 import { createCamera, eyePosition, viewMatrix } from '../src/camera.js';
 import { applyViewParams } from '../src/view-params.js';
 import { mat4Multiply, mat4Perspective } from '../src/math.js';
-import { SKY_COLOR } from '../src/renderer.js';
+import { SKY_COLOR, sortFarToNear } from '../src/renderer.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(here, '../..');
 
+// Viewpoints follow the agreed layout (TERRACE_LAYOUT): fountain pool r≈14.75 at the origin,
+// plaza z[-42,36] at y=0, arcade wall z=36, Terrace Drive deck z[36,50] and upper terrace
+// z[50,64] at y=5.5, Lake beyond z=-42, Mall south of z=64.
 export const DEFAULT_VIEWS = {
   'overview-orbit': 'mode=orbit',
-  'fountain-orbit': 'mode=orbit&tx=0&tz=0&dist=70&yaw=0.5&pitch=-0.45',
-  'walk-plaza-north': 'mode=walk&x=0&z=8&yaw=0&pitch=0.05',
-  'walk-plaza-south': 'mode=walk&x=0&z=-25&yaw=3.14159&pitch=0.12',
+  'fountain-orbit': 'mode=orbit&tx=0&tz=0&dist=90&yaw=0.5&pitch=-0.45',
+  'walk-plaza-to-lake': 'mode=walk&x=4&z=28&yaw=0&pitch=0.02',
+  'walk-plaza-to-arcade': 'mode=walk&x=-6&z=-36&yaw=3.14159&pitch=0.1',
+  'walk-upper-terrace': 'mode=walk&x=0&z=60&yaw=0&pitch=-0.12',
 };
 
 // ---- shading, kept in step with the fragment shader in renderer.js ----
@@ -58,7 +62,14 @@ export function renderScene(scene, cam, width, height, ss = 2) {
   const eye = eyePosition(cam);
   let triangles = 0;
 
-  for (const m of scene.meshes) {
+  const withSpheres = scene.meshes.map((m) => ({ m, sphere: meshBoundingSphere(m.positions) }));
+  const ordered = [
+    ...withSpheres.filter((e) => e.m.opacity === undefined || e.m.opacity >= 1),
+    ...sortFarToNear(withSpheres.filter((e) => e.m.opacity < 1), eye),
+  ].map((e) => e.m);
+
+  for (const m of ordered) {
+    const opacity = m.opacity ?? 1;
     const n = m.positions.length / 3;
     const clip = new Float32Array(n * 4);
     const lit = new Float32Array(n * 3);
@@ -82,7 +93,7 @@ export function renderScene(scene, cam, width, height, ss = 2) {
         col: v.col,
       }));
       for (let k = 1; k + 1 < s.length; k++) {
-        if (drawTriangle(s[0], s[k], s[k + 1], m.doubleSided, W, H, color, depth)) triangles++;
+        if (drawTriangle(s[0], s[k], s[k + 1], m.doubleSided, opacity, W, H, color, depth)) triangles++;
       }
     }
   }
@@ -108,7 +119,8 @@ function clipNear(poly) {
   return out;
 }
 
-function drawTriangle(a, b, c, doubleSided, W, H, color, depth) {
+// Opaque triangles write depth; translucent ones (opacity < 1) blend over and leave depth untouched.
+function drawTriangle(a, b, c, doubleSided, opacity, W, H, color, depth) {
   const area = (b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y);
   if (area === 0) return false;
   // Screen y points down, so counter-clockwise (front-facing) triangles have negative area.
@@ -131,8 +143,11 @@ function drawTriangle(a, b, c, doubleSided, W, H, color, depth) {
       if (z < -1 || z > 1) continue;
       const idx = y * W + x;
       if (z >= depth[idx]) continue;
-      depth[idx] = z;
-      for (let k = 0; k < 3; k++) color[idx * 3 + k] = w0 * a.col[k] + w1 * b.col[k] + w2 * c.col[k];
+      if (opacity >= 1) depth[idx] = z;
+      for (let k = 0; k < 3; k++) {
+        const src = w0 * a.col[k] + w1 * b.col[k] + w2 * c.col[k];
+        color[idx * 3 + k] = opacity >= 1 ? src : src * opacity + color[idx * 3 + k] * (1 - opacity);
+      }
     }
   }
   return true;

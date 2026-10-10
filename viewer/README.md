@@ -36,6 +36,7 @@ buildScene() → {
     normals,                    // optional; computed from faces when absent
     colors | color,             // per-vertex rgb 0–1, or one [r,g,b] for the whole mesh
     doubleSided,                // optional; disables back-face culling for this mesh
+    opacity,                    // optional 0–1 (default 1); translucent meshes are blended after opaque ones
   }],
   bounds,                       // optional { min:[x,y,z], max:[x,y,z] }; computed when absent
   spawn,                        // optional { position:[x,y,z], yaw, pitch } for walk mode
@@ -66,8 +67,8 @@ Front faces are counter-clockwise. Yaw 0 looks toward −Z (the Lake, park-north
 The camera can be set from the URL, so reviewers can open the exact view in a screenshot:
 
 ```
-viewer/index.html?mode=walk&x=0&z=8&yaw=0&pitch=0.05
-viewer/index.html?mode=orbit&tx=0&tz=0&dist=70&yaw=0.5&pitch=-0.45
+viewer/index.html?mode=walk&x=4&z=28&yaw=0&pitch=0.02      # plaza, looking past the fountain to the Lake
+viewer/index.html?mode=orbit&tx=0&tz=0&dist=90&yaw=0.5&pitch=-0.45
 viewer/index.html?hud=0          # hide UI panels for clean screenshots
 ```
 
@@ -90,7 +91,7 @@ Angles are in radians. Invalid values are ignored, and positions are clamped to 
 ```sh
 node viewer/tools/render-preview.js                 # scene module → docs/previews/*.png
 node viewer/tools/render-preview.js --scene placeholder --out /tmp/previews
-node viewer/tools/render-preview.js --view terrace=mode=walk\&x=0\&z=20\&yaw=0
+node viewer/tools/render-preview.js --view stairs=mode=walk\&x=22\&z=20\&yaw=3.14159
 ```
 
 For each image it prints scene statistics and the matching `viewer/index.html?…` URL. Previews approximate the browser output (flat 2× supersampling, no perspective-correct colour interpolation). They are not browser screenshots.

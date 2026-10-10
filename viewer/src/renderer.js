@@ -24,6 +24,7 @@ precision mediump float;
 uniform vec3 uSunDir;
 uniform vec3 uFogColor;
 uniform float uFogDensity;
+uniform float uOpacity;
 varying vec3 vNormal;
 varying vec3 vColor;
 varying float vDist;
@@ -34,7 +35,7 @@ void main() {
   vec3 ambient = mix(vec3(0.32, 0.30, 0.26), vec3(0.55, 0.60, 0.70), sky);
   vec3 c = vColor * (ambient + vec3(0.75, 0.72, 0.62) * sun);
   float fog = 1.0 - exp(-uFogDensity * vDist);
-  gl_FragColor = vec4(mix(c, uFogColor, clamp(fog, 0.0, 1.0)), 1.0);
+  gl_FragColor = vec4(mix(c, uFogColor, clamp(fog, 0.0, 1.0)), uOpacity);
 }`;
 
 export const SKY_COLOR = [0.72, 0.82, 0.92];
@@ -47,6 +48,15 @@ function compile(gl, type, src) {
     throw new Error('Shader compile failed: ' + gl.getShaderInfoLog(sh));
   }
   return sh;
+}
+
+/** Order meshes (with .sphere) by decreasing distance from the eye, for alpha blending. */
+export function sortFarToNear(meshes, eye) {
+  const d2 = (m) => {
+    const c = m.sphere.centre;
+    return (c[0] - eye[0]) ** 2 + (c[1] - eye[1]) ** 2 + (c[2] - eye[2]) ** 2;
+  };
+  return meshes.map((m) => [d2(m), m]).sort((a, b) => b[0] - a[0]).map(([, m]) => m);
 }
 
 export class Renderer {
@@ -78,7 +88,9 @@ export class Renderer {
       uSunDir: gl.getUniformLocation(prog, 'uSunDir'),
       uFogColor: gl.getUniformLocation(prog, 'uFogColor'),
       uFogDensity: gl.getUniformLocation(prog, 'uFogDensity'),
+      uOpacity: gl.getUniformLocation(prog, 'uOpacity'),
     };
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     gl.enable(gl.DEPTH_TEST);
     gl.enable(gl.CULL_FACE);
     gl.cullFace(gl.BACK);
@@ -108,6 +120,7 @@ export class Renderer {
         indexType: indices instanceof Uint32Array ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT,
         sphere: meshBoundingSphere(m.positions),
         doubleSided: !!m.doubleSided,
+        opacity: m.opacity ?? 1,
       });
     }
   }
@@ -147,17 +160,28 @@ export class Renderer {
       gl.enableVertexAttribArray(loc);
       gl.vertexAttribPointer(loc, 3, gl.FLOAT, false, 0, 0);
     };
-    for (const m of this.meshes) {
-      if (!sphereInFrustum(planes, m.sphere.centre, m.sphere.radius)) continue;
+    const draw = (m) => {
       attrib(L.aPosition, m.position);
       attrib(L.aNormal, m.normal);
       attrib(L.aColor, m.color);
+      gl.uniform1f(L.uOpacity, m.opacity);
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, m.index);
       if (m.doubleSided) gl.disable(gl.CULL_FACE);
       gl.drawElements(gl.TRIANGLES, m.count, m.indexType, 0);
       if (m.doubleSided) gl.enable(gl.CULL_FACE);
       drawCalls++;
       triangles += m.count / 3;
+    };
+    const visible = this.meshes.filter((m) => sphereInFrustum(planes, m.sphere.centre, m.sphere.radius));
+    for (const m of visible) if (m.opacity >= 1) draw(m);
+    // Translucent meshes last, far to near, depth-tested but not depth-writing.
+    const translucent = sortFarToNear(visible.filter((m) => m.opacity < 1), eye);
+    if (translucent.length) {
+      gl.enable(gl.BLEND);
+      gl.depthMask(false);
+      for (const m of translucent) draw(m);
+      gl.depthMask(true);
+      gl.disable(gl.BLEND);
     }
     return { drawCalls, triangles };
   }

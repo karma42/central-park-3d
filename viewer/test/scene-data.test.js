@@ -33,6 +33,13 @@ test('bounds are computed when the scene omits them', () => {
   assert.equal(s.groundHeight, null);
 });
 
+test('opacity defaults to 1 and is clamped', () => {
+  const tri = [0, 0, 0, 1, 0, 0, 0, 0, -1];
+  assert.equal(normalizeMesh({ positions: tri }).opacity, 1);
+  assert.equal(normalizeMesh({ positions: tri, opacity: 0.55 }).opacity, 0.55);
+  assert.equal(normalizeMesh({ positions: tri, opacity: 3 }).opacity, 1);
+});
+
 test('heightAt is accepted as the ground function', () => {
   const heightAt = (x) => x * 2;
   const s = normalizeScene({ meshes: [{ positions: [0, 0, 0, 1, 0, 0, 0, 0, -1] }], heightAt });

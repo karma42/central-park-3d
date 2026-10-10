@@ -42,6 +42,25 @@ test('back faces are culled and the near plane is clipped', () => {
   assert.ok(!isSky(above, bottomRow));
 });
 
+test('translucent meshes blend over what is behind them without hiding it', () => {
+  // Opaque red wall at z=-20, half-transparent white sheet in front at z=-10, viewed head-on.
+  const wall = (z, color, opacity) => ({
+    positions: [-50, -50, z, 50, -50, z, 50, 50, z, -50, 50, z], indices: [0, 1, 2, 0, 2, 3], color, opacity,
+  });
+  // Listing the sheet first checks that opaque meshes are still drawn before translucent ones.
+  const scene = normalizeScene({
+    meshes: [wall(-10, [1, 1, 1], 0.5), wall(-20, [1, 0, 0])],
+    bounds: { min: [-50, 0, -50], max: [50, 5, 50] },
+  });
+  const cam = createCamera(scene);
+  cam.mode = 'walk';
+  cam.walk.position = [0, 0, 0];
+  const px = renderScene(scene, cam, 8, 8, 1).pixels;
+  const centre = (4 * 8 + 4) * 3;
+  assert.ok(px[centre] > px[centre + 1], 'red wall shows through');
+  assert.ok(px[centre + 1] > 40, 'white sheet tints it');
+});
+
 test('PNG encoder writes a valid header and raw scanlines', () => {
   const rgb = new Uint8Array([255, 0, 0, 0, 255, 0, 0, 0, 255, 10, 20, 30]);
   const png = encodePng(rgb, 2, 2);

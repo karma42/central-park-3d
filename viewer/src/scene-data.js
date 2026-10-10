@@ -1,7 +1,8 @@
 // Validation and normalization of scene data produced by scene/index.js `buildScene()`.
 //
 // Accepted mesh fields: name, positions (xyz), indices (optional), normals (optional, computed
-// if absent), colors (per-vertex rgb 0-1) or color ([r,g,b] for the whole mesh), doubleSided.
+// if absent), colors (per-vertex rgb 0-1) or color ([r,g,b] for the whole mesh), doubleSided,
+// opacity (0-1, default 1; translucent meshes are drawn after opaque ones).
 // Plain arrays are accepted and converted to typed arrays.
 
 const DEFAULT_COLOR = [0.7, 0.7, 0.7];
@@ -97,7 +98,8 @@ export function normalizeMesh(mesh, i = 0) {
       colors[k] = c[0]; colors[k + 1] = c[1]; colors[k + 2] = c[2];
     }
   }
-  return { name, positions, normals, colors, indices, doubleSided: !!mesh.doubleSided };
+  const opacity = Number.isFinite(mesh.opacity) ? Math.min(Math.max(mesh.opacity, 0), 1) : 1;
+  return { name, positions, normals, colors, indices, doubleSided: !!mesh.doubleSided, opacity };
 }
 
 /** Validate and normalize a scene; computes bounds when missing. */
