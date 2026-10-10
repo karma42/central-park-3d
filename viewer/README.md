@@ -62,7 +62,7 @@ Front faces are counter-clockwise. Yaw 0 looks toward âˆ’Z (the Lake, park-north
 
 - `C` or `Tab` (or the toolbar button) switches modes. The viewpoint carries across, so walk starts where the orbit was centred.
 - `R` (or **Reset view**) returns to the starting view in the current mode.
-- Walk mode keeps the eye 1.7 m above the ground function, moves at 4 m/s (12 m/s running), stays inside the scene bounds and slides along `canWalk` edges such as the shoreline. Collisions with walls are not modelled.
+- Walk mode keeps the eye 1.7 m above the ground function, moves at 4 m/s (12 m/s running), stays inside the scene bounds and slides along `canWalk` edges such as the shoreline. Moves are taken in sub-steps of up to 0.5 m. A sub-step is refused if the ground changes by more than 0.6 m, so walls, deck edges and the seawall block the walker while stairs modelled as treads can be climbed.
 
 ### Reproducible viewpoints
 
@@ -110,7 +110,7 @@ For each image it prints scene statistics and the matching `viewer/index.html?â€
 node --test 'viewer/test/*.test.js'
 ```
 
-`scene-integration.test.js` runs the real scene through the viewer pipeline whenever the scene modules are in the checkout, and skips otherwise. It uses `src/scene/index.js` if present, or else composes the terrace, fountain and landscape modules. It checks the triangle, GPU memory and draw-call budget, walk heights on the plaza, deck and upper terrace, the walker stopping at the Lake, and geometry in every default preview view. A local merge of PRs #2, #3, #4 and #6 on 2026-10-10 measured 14 meshes, about 139k vertices, 86.9k triangles, 5.40 MB of GPU buffers and 7 ms to normalize, and all 36 tests passed.
+`scene-integration.test.js` runs the real scene through the viewer pipeline whenever the scene modules are in the checkout, and skips otherwise. It uses `src/scene/index.js` if present, or else composes the terrace, fountain and landscape modules. It checks the triangle, GPU memory and draw-call budget, walk heights on the plaza, deck and upper terrace, the walker stopping at the Lake, the arcade facade blocking the walker, the east grand stair leading up to the deck, and geometry in every default preview view. A local merge of PRs #2, #3, #4 and #6 on 2026-10-10 measured 14 meshes, about 138k vertices, 86.8k triangles, 5.39 MB of GPU buffers and 11 ms to normalize, and all 42 tests passed.
 
 The tests also cover the matrix and frustum maths, orbit/walk/reset camera behaviour and limits, URL viewpoints, scene-data validation and normalization, the preview rasterizer (coverage, back-face culling, near-plane clipping) and the PNG encoder.
 
@@ -120,6 +120,6 @@ The viewer and scene are static files: HTML, ES modules and no server code. They
 
 ## Known limitations
 
-- No collision with walls or stairs in walk mode. The walker follows the ground function, and `canWalk` blocks only whole areas such as water.
-- No textures, shadows or water animation. Lighting is one sun plus sky ambient with distance fog.
+- Walk collisions come only from the ground function and `canWalk`. Thin features that don't change ground height, such as balustrades, lamp posts and tree trunks, can be walked through.
+- No textures, shadows or water animation. Lighting is one sun plus sky ambient. Fog combines distance fog with edge fog that fades the scene into the sky near its bounds, which hides the tile edge.
 - Real-browser screenshots are not yet in the repository; see *Evidence for review* above.
