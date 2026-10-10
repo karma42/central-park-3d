@@ -41,7 +41,7 @@ The extents match `TERRACE_LAYOUT` in `src/scene/terrace.js`. The values live in
 | Lower plaza slab, y = 0 | terrace | x ∈ [−50, 50], z ∈ [−42, 36] |
 | Seawall, balustrade, landing steps | terrace | z = −42; steps x ∈ [−6, 6] down to z = −45 |
 | Deck + Terrace Drive, upper terrace, y = 5.5 | terrace | x ∈ [−50, 50], z ∈ [36, 64] |
-| Terrain under the footprint | landscape | kept at or below the slab (0) and deck (5.5), as covered by a test |
+| Terrain under the footprint | landscape | kept 0.2 m below the slab (0) and deck (5.5), as covered by a test; coplanar terrain z-fought with the paving in the first stack renders |
 | Terrain beside the deck ends | landscape | rises to about 5.5 by z ≈ 36–40 for \|x\| > 50 |
 | Terrace Drive outside the deck | landscape | 8 m asphalt at z ≈ 43, continuing west/east from \|x\| = 50 |
 | The Mall | landscape | central walk 11 m wide along x = 0, z 64…262; side walks x = ±13.5; four elm rows at x = ±7.5, ±19.5 |
@@ -82,9 +82,13 @@ up. They also cover:
 
 ## Preview renders
 
-These use the viewer's CPU preview renderer (`viewer/tools/render-preview.js`,
-PR #3), which renders the aggregated scene once the scene entry point exists.
-**Not yet run for the landscape.** This agent session can only run `node --test`.
+cp3d-builder rendered the combined #2 + #3 + #4 stack, wired by PR #6, with the
+viewer's renderer (`viewer/tools/render-preview.js`). The PNGs are on branch
+`cp3d-stack-evidence` under `docs/stack-previews/`, and the output is in a
+comment on #3. Those renders used #2 at 62a80c6, which was before the far shore and
+the slab-clearance fix. They showed terrain z-fighting with the deck paving, which
+is now fixed. The scene edge is also visible in the overview view. A re-render is still
+needed to confirm both changes. This agent session can only run `node --test`.
 
 ## Known limitations and uncertainty
 
@@ -102,6 +106,8 @@ PR #3), which renders the aggregated scene once the scene entry point exists.
 - Beside the deck ends (\|x\| just over 50, z ≈ 32–40), the ground is still
   rising and can sit a few metres below the deck. This reads like a retaining
   wall, and the terrace module may want an end wall there.
+- The terrain ends at a hard edge (340 m × 472 m), which shows in high overview
+  shots. Distance fog or a camera limit in the viewer would hide it.
 - Terrain under the plaza is coloured as paving, so it reads correctly even if
   the slab is not loaded.
 

@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildLandscape, heightAt, walkHeightAt, isInLake, shoreZ, farShoreZ, LAYOUT, distanceToPaths } from '../src/landscape/index.js';
 import { treeExclusion } from '../src/landscape/trees.js';
+import { SLAB_CLEARANCE } from '../src/landscape/terrain.js';
 
 const scene = buildLandscape();
 
@@ -39,8 +40,8 @@ test('ground-like meshes face up (counter-clockwise from above)', () => {
   }
 });
 
-test('plaza is flat at y = 0 and the upper level sits ~5.5 m higher', () => {
-  for (const [x, z] of [[0, 0], [30, -20], [-45, 30], [0, -35]]) assert.ok(Math.abs(heightAt(x, z)) < 1e-6, `plaza at ${x},${z}`);
+test('ground is flat just under the plaza slab and the Mall sits ~5.5 m higher', () => {
+  for (const [x, z] of [[0, 0], [30, -20], [-45, 30], [0, -35]]) assert.ok(Math.abs(heightAt(x, z) + SLAB_CLEARANCE) < 1e-6, `plaza at ${x},${z}`);
   for (const z of [80, 150, 250]) assert.ok(Math.abs(heightAt(0, z) - LAYOUT.upper.height) < 0.05, `Mall at z=${z}`);
 });
 
@@ -67,14 +68,16 @@ test('lake bed is below water and land near the shore is above it', () => {
 });
 
 // Terrain grid vertices inside the terrace footprint (see TERRACE_LAYOUT in
-// src/scene/terrace.js) must not rise above the slab (y=0) or deck (y=5.5).
+// src/scene/terrace.js) must stay clearly below the slab (y=0) and deck
+// (y=5.5); coplanar terrain z-fought with the paving in the stack renders.
 test('terrain stays under the terrace slab and deck', () => {
   const { cellSize, bounds, plaza, upper, mall } = LAYOUT;
+  const gap = SLAB_CLEARANCE - 1e-9;
   for (let x = bounds.minX; x <= bounds.maxX; x += cellSize) {
     if (Math.abs(x) > plaza.halfWidth) continue;
     for (let z = bounds.minZ; z <= bounds.maxZ; z += cellSize) {
-      if (z >= plaza.northZ && z <= plaza.southZ) assert.ok(heightAt(x, z) <= 1e-9, `slab at ${x},${z}: ${heightAt(x, z)}`);
-      if (z > plaza.southZ && z <= mall.startZ) assert.ok(heightAt(x, z) <= upper.height + 1e-9, `deck at ${x},${z}`);
+      if (z >= plaza.northZ && z <= plaza.southZ) assert.ok(heightAt(x, z) <= -gap, `slab at ${x},${z}: ${heightAt(x, z)}`);
+      if (z > plaza.southZ && z <= mall.startZ) assert.ok(heightAt(x, z) <= upper.height - gap, `deck at ${x},${z}`);
     }
   }
 });

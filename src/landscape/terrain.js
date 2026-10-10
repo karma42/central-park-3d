@@ -24,6 +24,9 @@ export function terrainShoreZ(x) {
   return shoreZ(x) + lake.seawallInset * (1 - smoothstep(plaza.halfWidth, plaza.halfWidth + 6, Math.abs(x)));
 }
 
+// Gap between terrain and the terrace slab/deck surfaces above it (metres).
+export const SLAB_CLEARANCE = 0.2;
+
 // Distance to the nearer Lake bank: > 0 on land, < 0 in the water.
 export function shoreDistance(x, z) {
   return Math.max(z - terrainShoreZ(x), farShoreZ(x) - z);
@@ -54,7 +57,12 @@ export function heightAt(x, z) {
   const stepEnd = lerp(upper.startZ, upper.startZ + 4, nearPlaza);
   const ramp = lerp(30, 2, nearPlaza);
   const u = smoothstep(stepEnd - ramp, stepEnd, z);
-  const land = lerp(low, high, u);
+  let land = lerp(low, high, u);
+  // Inside the terrace footprint keep the ground clearly below the slab and
+  // deck so it never z-fights with their paving.
+  if (ax <= plaza.halfWidth && z >= plaza.northZ && z <= LAYOUT.mall.startZ) {
+    land = Math.min(land, (z <= plaza.southZ ? 0 : upper.height) - SLAB_CLEARANCE);
+  }
 
   if (s >= 0) return land;
   const depth = Math.min(lake.maxDepth, 0.5 + -s * 0.18);
