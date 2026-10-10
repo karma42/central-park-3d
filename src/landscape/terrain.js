@@ -14,7 +14,11 @@ function undulation(x, z) {
 export function plazaWeight(x, z) {
   const { plaza } = LAYOUT;
   const ax = Math.abs(x);
-  return (1 - smoothstep(plaza.halfWidth, plaza.halfWidth + 8, ax)) * (1 - smoothstep(plaza.southZ, plaza.southZ + 4, z));
+  return (
+    (1 - smoothstep(plaza.halfWidth, plaza.halfWidth + 8, ax)) *
+    (1 - smoothstep(plaza.southZ, plaza.southZ + 4, z)) *
+    smoothstep(plaza.northZ - 8, plaza.northZ - 2, z)
+  );
 }
 
 // Shore used for terrain shaping. Along the seawall it sits a little south of

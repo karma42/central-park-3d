@@ -54,8 +54,8 @@ The extents match `TERRACE_LAYOUT` in `src/scene/terrace.js`. The values live in
 terrain    10,234 vertices  20,060 triangles  (4 m grid, 340 m × 472 m)
 paths       2,172 vertices   2,852 triangles  (11 paths)
 lake-water  1,844 vertices     922 triangles
-trees      76,626 vertices  25,542 triangles  (88 Mall elms + 420 scattered)
-total      90,876 vertices  49,376 triangles
+trees      76,416 vertices  25,472 triangles  (88 Mall elms + 420 scattered)
+total      90,666 vertices  49,306 triangles
 ```
 
 This is small enough for any WebGL1 device. Trees use flat-shaded,

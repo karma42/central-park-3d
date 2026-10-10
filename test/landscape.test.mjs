@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildLandscape, heightAt, walkHeightAt, isInLake, shoreZ, farShoreZ, LAYOUT, distanceToPaths } from '../src/landscape/index.js';
 import { treeExclusion } from '../src/landscape/trees.js';
-import { SLAB_CLEARANCE } from '../src/landscape/terrain.js';
+import { SLAB_CLEARANCE, plazaWeight, groundColor } from '../src/landscape/terrain.js';
+import { COLORS } from '../src/landscape/layout.js';
 
 const scene = buildLandscape();
 
@@ -59,6 +60,12 @@ test('lake bed is below water and land near the shore is above it', () => {
     assert.ok(heightAt(x, fz - 3) > w, `far bank at x=${x}`);
     assert.ok(heightAt(x, (fz + shoreZ(x)) / 2) < w - 1, `mid-lake at x=${x}`);
     assert.ok(isInLake(x, fz + 1) && !isInLake(x, fz - 1));
+  }
+  // The plaza must not leak north across the Lake onto the far bank.
+  for (let x = -60; x <= 60; x += 4) {
+    const z = farShoreZ(x) - 8;
+    assert.equal(plazaWeight(x, z), 0, `plaza weight on far bank at x=${x}`);
+    assert.notDeepEqual(groundColor(x, z, heightAt(x, z)), COLORS.plaza, `far bank colour at x=${x}`);
   }
   const ramble = scene.trees.filter((t) => t.z < farShoreZ(t.x));
   assert.ok(ramble.length >= 40, `wooded far shore: ${ramble.length} trees`);
