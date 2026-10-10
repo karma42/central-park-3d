@@ -1,0 +1,20 @@
+{
+  "project": "Central Park 3D",
+  "date": "2026-10-10",
+  "generator": "Built-in image_gen",
+  "status": "Exploratory product mockups with synthetic data; not implemented features or measured state.",
+  "images": [
+    {
+      "file": "cover.png",
+      "prompt": "Use case: ui-mockup. Create a high-quality landscape raster image, 1536x1024 composition. This is an exploratory product design image for a friends coding/research project. Depict the intended product concretely, not abstract symbolic artwork. Minimal readable text, no laptop or phone hardware, no floating screens, no watermarks or external brand logos. Include a small discreet label 'DESIGN CONCEPT'. All shown state is synthetic. Product cover for 'Central Park 3D', interactive browser exploration of New York Central Park. The image is dominated by an elegant realistic 3D terrain model seen from an elevated oblique view, focusing on Bethesda Terrace and Fountain with the Lake behind and the tree-lined Mall leading toward the terrace. Green foliage, stone terraces and paths, blue lake, Manhattan skyline softly at distant edges. Recognizable park geography, an actual rendered model rather than a photograph or fantasy landscape. Sparse white viewer overlay: title 'Central Park 3D', 'Explore in your browser', a small orbit/navigation control and 'Bethesda Terrace' landmark chip. Quiet refined cartographic editorial style, natural emerald and stone palette, afternoon light. No full-city model claiming geographic precision."
+    },
+    {
+      "file": "concept-explore.png",
+      "prompt": "Use case: ui-mockup. Create a high-quality landscape raster image, 1536x1024 composition. This is an exploratory product design image for a friends coding/research project. Depict the intended product concretely, not abstract symbolic artwork. Minimal readable text, no laptop or phone hardware, no floating screens, no watermarks or external brand logos. Include a small discreet label 'DESIGN CONCEPT'. All shown state is synthetic. Concrete product screen for 'Central Park 3D'. Full-size browser 3D viewport at walking height approaching Bethesda Fountain, its central angel statue visible above circular stone basin, terrace stairs, trees and Lake beyond. Realistic yet clearly computer-rendered geometry and lighting. Compact light overlay sidebar titled 'Explore the park' with 'Bethesda Terrace', 'The Mall', 'The Lake'. 'Bethesda Terrace' selected. Bottom controls 'Walk', 'Orbit', 'Reset view'; tiny orientation/minimap graphic. Put 'Prototype area' next to the selected landmark; sidebar destinations are proposed. Strong immersion, calm whites and forest greens, restrained text. No game fantasy structures."
+    },
+    {
+      "file": "concept-model.png",
+      "prompt": "Use case: ui-mockup. Create a high-quality landscape raster image, 1536x1024 composition. This is an exploratory product design image for a friends coding/research project. Depict the intended product concretely, not abstract symbolic artwork. Minimal readable text, no laptop or phone hardware, no floating screens, no watermarks or external brand logos. Include a small discreet label 'DESIGN CONCEPT'. All shown state is synthetic. Concrete development concept screen for 'Central Park 3D': split workspace showing reference geometry on the left and a shaded 3D model of Bethesda Terrace and circular fountain on the right. Left pane 'Reference layers' has schematic top-down park paths, shoreline and building outlines, layer switches 'Paths', 'Trees', 'Terrain', all labeled 'Illustrative reference'. Right pane 'Model preview' shows unfinished terrain mesh patches blending into finished stone stairs and trees, making the modeling task obvious. Selected terrace mesh outlined in amber, bottom simple panel 'Model parts': 'Terrace', 'Fountain', 'Trees'. Refined light 3D editor style, natural greens, gray wireframe, amber selection. No fabricated real map-provider logo or measured accuracy claim."
+    }
+  ]
+}
