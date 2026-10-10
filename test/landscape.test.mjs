@@ -49,9 +49,12 @@ test('lake bed is below water and land near the shore is above it', () => {
   for (let x = -160; x <= 160; x += 10) {
     assert.ok(heightAt(x, shoreZ(x) - 6) < w - 0.5, `bed at x=${x}`);
     assert.ok(heightAt(x, shoreZ(x) + 3) > w, `bank at x=${x}`);
-    assert.ok(isInLake(x, shoreZ(x) - 1));
+    if (Math.abs(x) > LAYOUT.lake.landingSteps.halfWidth) assert.ok(isInLake(x, shoreZ(x) - 1));
     assert.ok(!isInLake(x, shoreZ(x) + 1));
   }
+  assert.ok(!isInLake(0, -44), 'terrace landing steps are walkable');
+  assert.ok(isInLake(0, -46) && isInLake(10, -44));
+  assert.ok(heightAt(0, -45) < -0.9, 'lake bed below the bottom landing step');
 });
 
 // Terrain grid vertices inside the terrace footprint (see TERRACE_LAYOUT in

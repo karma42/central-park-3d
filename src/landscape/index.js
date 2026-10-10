@@ -15,7 +15,10 @@ export function walkHeightAt(x, z) {
   return heightAt(x, z) + (distanceToPaths(x, z) <= 0 ? PATH_LIFT : 0);
 }
 
+// The terrace's landing steps project past the shore line but stay walkable.
 export function isInLake(x, z) {
+  const steps = LAYOUT.lake.landingSteps;
+  if (Math.abs(x) <= steps.halfWidth && z >= steps.minZ) return false;
   return z < shoreZ(x);
 }
 

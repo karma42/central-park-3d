@@ -32,7 +32,9 @@ export const LAYOUT = {
     // Inside the seawall span the terrain bank is pulled back under the
     // plaza slab so the coarse grid is already below water at the wall.
     seawallInset: 2.5,
-    copingHalfWidth: 50,
+    copingHalfWidth: 52,
+    // Terrace landing steps descending from the seawall toward the water.
+    landingSteps: { halfWidth: 6, minZ: -45 },
     maxDepth: 3.0,
   },
 

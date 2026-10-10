@@ -17,7 +17,7 @@ other agents and are not included here.
 | `paths` | Path polylines with width and surface type |
 | `heightAt(x, z)` | Analytic ground height, including the lake bed |
 | `walkHeightAt(x, z)` | Ground or path-surface height for a walk camera |
-| `isInLake(x, z)` | True north of the shoreline (not walkable) |
+| `isInLake(x, z)` | True north of the shoreline (not walkable); the terrace landing steps (\|x\| ≤ 6, z ≥ −45) count as walkable |
 | `stats` | Vertex/triangle counts per mesh, tree and path counts |
 
 Mesh format: `{ name, material, positions, normals, colors, indices }`, plain
@@ -52,10 +52,10 @@ The extents match `TERRACE_LAYOUT` in `src/scene/terrace.js`. The values live in
 
 ```
 terrain     9,116 vertices  17,850 triangles  (4 m grid, 340 m × 420 m)
-paths       2,169 vertices   2,848 triangles  (11 paths)
-lake-water  1,704 vertices     852 triangles
+paths       2,172 vertices   2,852 triangles  (11 paths)
+lake-water  1,696 vertices     848 triangles
 trees      61,476 vertices  20,492 triangles  (88 Mall elms + 320 scattered)
-total      74,465 vertices  42,042 triangles
+total      74,460 vertices  42,042 triangles
 ```
 
 This is small enough for any WebGL1 device. Trees use flat-shaded,
