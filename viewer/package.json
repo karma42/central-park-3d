@@ -1,0 +1,9 @@
+{
+  "name": "central-park-3d-viewer",
+  "private": true,
+  "type": "module",
+  "description": "Dependency-free WebGL viewer for the Central Park 3D scene.",
+  "scripts": {
+    "test": "node --test 'test/*.test.js'"
+  }
+}
