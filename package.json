@@ -1,0 +1,15 @@
+{
+  "name": "central-park-3d",
+  "private": true,
+  "description": "Navigable 3D model of Central Park, starting with Bethesda Terrace and Fountain.",
+  "type": "module",
+  "scripts": {
+    "start": "node tools/serve.mjs",
+    "test": "node --test \"tests/*.test.mjs\"",
+    "stats": "node tools/scene-stats.mjs",
+    "preview": "node tools/render-preview.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

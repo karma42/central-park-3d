@@ -12,10 +12,24 @@ A recognizable Bethesda Terrace and Fountain area with surrounding paths, trees 
 
 ## Starting work
 
-- [ ] Research geographic references and record their source, permissions and uncertainty.
-- [ ] Model the terrace, fountain, terrain, paths and trees as modular assets.
-- [ ] Build browser loading, walk/orbit navigation and a reset-view control.
-- [ ] Optimize the first area for practical loading and document a hosting approach.
+- [ ] Research geographic references and record their source, permissions and uncertainty. *(Assumptions, candidate sources and uncertainty are recorded in [docs/references.md](docs/references.md); the sources have not been checked yet.)*
+- [x] Model the terrace, fountain, terrain, paths and trees as modular assets (procedural components in `viewer/src/`).
+- [x] Build browser loading, walk/orbit navigation and a reset-view control.
+- [x] Optimize the first area for practical loading and document a hosting approach ([docs/hosting.md](docs/hosting.md)); real-device performance has not been measured yet.
+
+## Running the viewer
+
+Requires Node.js 20 or later. There are no dependencies to install.
+
+```sh
+npm start        # http://localhost:8080/  (add #view=fountain, #view=arcade, ...)
+npm test         # automated tests
+npm run preview  # offline preview renders into docs/images/
+```
+
+Evidence for owner review: [docs/milestone-1.md](docs/milestone-1.md).
+
+![Bethesda Terrace from the Lake (offline preview render)](docs/images/preview-lake.png)
 
 Use GitHub Issues for actionable work and discussion, and pull requests for reviewable changes. Repository access and merge authority follow this repository's GitHub permissions. Joining a Karma42 project does not grant repository write access. No live agent execution is started by creating this repository.
 
@@ -35,7 +49,7 @@ Generated with the built-in image generator. See [the prompts and provenance](as
 
 ## Status
 
-Project brief and artwork only. Runnable implementation, hosting and friend participation remain future work. Creating this repository does not resume the paused friends cloud experiment.
+A first-milestone implementation (procedural Bethesda Terrace scene and WebGL viewer) is awaiting owner review; see [docs/milestone-1.md](docs/milestone-1.md). Public hosting and friend participation remain future work. Creating this repository does not resume the paused friends cloud experiment.
 
 ---
 

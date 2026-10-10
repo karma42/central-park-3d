@@ -1,0 +1,136 @@
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #c2d4e6;
+  font: 14px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: #1d2a1f;
+}
+
+#view {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+  outline: none;
+}
+
+#loading {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(#6f9ad0, #c2d4e6);
+  color: #fff;
+  z-index: 10;
+}
+
+#loading .title {
+  font-size: 28px;
+  font-weight: 600;
+}
+
+#loading.error {
+  background: #5b2a2a;
+}
+
+#hud {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(250, 248, 240, 0.85);
+  backdrop-filter: blur(4px);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+#hud .title {
+  font-weight: 600;
+}
+
+.badge {
+  font-weight: 400;
+  font-size: 12px;
+  padding: 1px 6px;
+  margin-left: 6px;
+  border-radius: 8px;
+  background: #e6dcc3;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+button, select {
+  font: inherit;
+  padding: 4px 10px;
+  border: 1px solid #8a7f68;
+  border-radius: 6px;
+  background: #fffdf6;
+  cursor: pointer;
+}
+
+button:hover, select:hover {
+  background: #f1ead6;
+}
+
+#help {
+  position: fixed;
+  top: 56px;
+  right: 12px;
+  width: 280px;
+  max-height: calc(100% - 100px);
+  overflow: auto;
+  padding: 10px 14px;
+  background: rgba(250, 248, 240, 0.94);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+#help h2 { margin: 0 0 6px; font-size: 16px; }
+#help h3 { margin: 10px 0 2px; font-size: 13px; }
+#help ul { margin: 0; padding-left: 18px; }
+#help .note { font-size: 12px; color: #5a5446; }
+
+#status {
+  position: fixed;
+  left: 12px;
+  bottom: 10px;
+  padding: 3px 8px;
+  font-size: 12px;
+  background: rgba(250, 248, 240, 0.8);
+  border-radius: 6px;
+}
+
+#touch-pad {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#touch-pad[hidden] { display: none; }
+
+#touch-pad button {
+  width: 56px;
+  height: 56px;
+  font-size: 22px;
+  border-radius: 28px;
+  opacity: 0.85;
+}

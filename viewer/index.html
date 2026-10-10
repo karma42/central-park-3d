@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>Central Park 3D — Bethesda Terrace &amp; Fountain</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="view" aria-label="3D view of Bethesda Terrace and Fountain" tabindex="0"></canvas>
+
+  <div id="loading" role="status">
+    <div class="title">Central Park 3D</div>
+    <div id="loading-text">Loading Bethesda Terrace…</div>
+  </div>
+
+  <header id="hud">
+    <div class="title">Bethesda Terrace &amp; Fountain <span class="badge">Milestone 1 · approximate model</span></div>
+    <div class="controls">
+      <button id="reset" title="Reset view (R)">Reset view</button>
+      <button id="mode" title="Toggle orbit / walk (M)">Mode: Orbit</button>
+      <label>View
+        <select id="viewpoint" title="Viewpoints (1–6)"></select>
+      </label>
+      <button id="help-toggle" title="Help (H)">?</button>
+    </div>
+  </header>
+
+  <aside id="help" hidden>
+    <h2>Navigation</h2>
+    <h3>Orbit mode</h3>
+    <ul>
+      <li>Drag: rotate around the target</li>
+      <li>Right-drag or Shift+drag: pan</li>
+      <li>Wheel / pinch / + −: zoom</li>
+      <li>W A S D / arrows: move the target</li>
+    </ul>
+    <h3>Walk mode</h3>
+    <ul>
+      <li>W A S D / arrows: walk (Shift to run)</li>
+      <li>Drag: look around; Q / E: turn</li>
+      <li>Stairs, terraces and the arcade are walkable; the pool and lake are not</li>
+    </ul>
+    <h3>Anywhere</h3>
+    <ul>
+      <li>M: toggle mode · R: reset view · 1–6: viewpoints · H: help</li>
+    </ul>
+    <p class="note">Layout and dimensions are approximate and illustrative; see docs/references.md.</p>
+  </aside>
+
+  <div id="touch-pad" hidden>
+    <button data-move="forward" aria-label="Walk forward">▲</button>
+    <button data-move="back" aria-label="Walk back">▼</button>
+  </div>
+
+  <footer id="status" aria-live="polite"></footer>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
