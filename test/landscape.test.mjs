@@ -28,7 +28,7 @@ function faceNormalY(mesh, t) {
 }
 
 test('all meshes are well formed', () => {
-  assert.deepEqual(scene.meshes.map((m) => m.name), ['terrain', 'paths', 'lake-water', 'lake-edge', 'trees']);
+  assert.deepEqual(scene.meshes.map((m) => m.name), ['terrain', 'paths', 'lake-water', 'trees']);
   for (const m of scene.meshes) checkMesh(m);
 });
 
@@ -40,7 +40,7 @@ test('ground-like meshes face up (counter-clockwise from above)', () => {
 });
 
 test('plaza is flat at y = 0 and the upper level sits ~5.5 m higher', () => {
-  for (const [x, z] of [[0, 0], [30, -20], [-40, 5], [0, -35]]) assert.ok(Math.abs(heightAt(x, z)) < 1e-6, `plaza at ${x},${z}`);
+  for (const [x, z] of [[0, 0], [30, -20], [-45, 30], [0, -35]]) assert.ok(Math.abs(heightAt(x, z)) < 1e-6, `plaza at ${x},${z}`);
   for (const z of [80, 150, 250]) assert.ok(Math.abs(heightAt(0, z) - LAYOUT.upper.height) < 0.05, `Mall at z=${z}`);
 });
 
@@ -48,17 +48,32 @@ test('lake bed is below water and land near the shore is above it', () => {
   const w = LAYOUT.lake.waterLevel;
   for (let x = -160; x <= 160; x += 10) {
     assert.ok(heightAt(x, shoreZ(x) - 6) < w - 0.5, `bed at x=${x}`);
-    assert.ok(heightAt(x, shoreZ(x) + 1) > w, `bank at x=${x}`);
+    assert.ok(heightAt(x, shoreZ(x) + 3) > w, `bank at x=${x}`);
     assert.ok(isInLake(x, shoreZ(x) - 1));
     assert.ok(!isInLake(x, shoreZ(x) + 1));
   }
 });
 
-test('terrain grid drops below water directly in front of the coped edge', () => {
-  const { cellSize, bounds, lake } = LAYOUT;
+// Terrain grid vertices inside the terrace footprint (see TERRACE_LAYOUT in
+// src/scene/terrace.js) must not rise above the slab (y=0) or deck (y=5.5).
+test('terrain stays under the terrace slab and deck', () => {
+  const { cellSize, bounds, plaza, upper, mall } = LAYOUT;
+  for (let x = bounds.minX; x <= bounds.maxX; x += cellSize) {
+    if (Math.abs(x) > plaza.halfWidth) continue;
+    for (let z = bounds.minZ; z <= bounds.maxZ; z += cellSize) {
+      if (z >= plaza.northZ && z <= plaza.southZ) assert.ok(heightAt(x, z) <= 1e-9, `slab at ${x},${z}: ${heightAt(x, z)}`);
+      if (z > plaza.southZ && z <= mall.startZ) assert.ok(heightAt(x, z) <= upper.height + 1e-9, `deck at ${x},${z}`);
+    }
+  }
+});
+
+test('terrain grid is below water right in front of the seawall', () => {
+  const { cellSize, bounds, lake, plaza } = LAYOUT;
   const row = bounds.minZ + Math.floor((lake.plazaShoreZ - bounds.minZ) / cellSize) * cellSize;
-  assert.ok(row < lake.plazaShoreZ - 0.8 + 1e-9);
-  for (let x = -40; x <= 40; x += 8) assert.ok(heightAt(x, row) < lake.waterLevel, `grid row ${row} at x=${x}`);
+  for (let x = -plaza.halfWidth; x <= plaza.halfWidth; x += cellSize) {
+    assert.ok(heightAt(x, row) < lake.waterLevel, `grid row ${row} at x=${x}`);
+    assert.ok(heightAt(x, row - cellSize) < lake.waterLevel, `grid row ${row - cellSize} at x=${x}`);
+  }
 });
 
 test('mall has four rows of elms along the central walk', () => {

@@ -3,7 +3,7 @@
 import { LAYOUT, pathDefinitions, shoreZ } from './layout.js';
 import { buildTerrainMesh, heightAt } from './terrain.js';
 import { buildPathMesh, PATH_LIFT, distanceToPaths } from './paths.js';
-import { buildWaterMesh, buildLakeEdgeMesh } from './lake.js';
+import { buildWaterMesh } from './lake.js';
 import { mallElmPlacements, scatteredTreePlacements, buildTreeMesh } from './trees.js';
 import { meshStats } from './mesh.js';
 
@@ -22,7 +22,7 @@ export function isInLake(x, z) {
 export function buildLandscape(options = {}) {
   const paths = pathDefinitions();
   const trees = [...mallElmPlacements(), ...scatteredTreePlacements(options.scatteredTrees ?? 320)];
-  const meshes = [buildTerrainMesh(), buildPathMesh(paths), buildWaterMesh(), buildLakeEdgeMesh(), buildTreeMesh(trees)];
+  const meshes = [buildTerrainMesh(), buildPathMesh(paths), buildWaterMesh(), buildTreeMesh(trees)];
   const perMesh = meshes.map(meshStats);
   const stats = {
     meshes: perMesh,

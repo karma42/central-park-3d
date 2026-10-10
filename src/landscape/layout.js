@@ -12,30 +12,34 @@ export const LAYOUT = {
   cellSize: 4,
 
   // Lower terrace (fountain plaza): flat pavement at y = 0.
-  // Extents agreed with the terrace module (plaza x[-45,45] z[-38,10],
-  // stairs/upper terrace/Terrace Drive z[10,30], Mall from z≈30).
-  plaza: { halfWidth: 45, northZ: -40, southZ: 10 },
+  // Extents match TERRACE_LAYOUT in src/scene/terrace.js: plaza slab
+  // x[-50,50] z[-42,36], arcade wall z=36, deck + Terrace Drive z[36,50],
+  // upper terrace z[50,64], Mall entry at z=64.
+  plaza: { halfWidth: 50, northZ: -42, southZ: 36 },
 
-  // Upper level (Terrace Drive / upper terrace / the Mall).
-  upper: { height: 5.5, startZ: 16 },
+  // Upper level (Terrace Drive / upper terrace / the Mall). The ground beside
+  // the deck ends (|x| > 50) reaches this height by startZ.
+  upper: { height: 5.5, startZ: 36 },
 
-  // Zone reserved for terrace architecture (stairs, arcade, drive bridge,
-  // upper terrace). Landscape keeps trees and paths out of it.
-  terraceZone: { halfWidth: 60, minZ: 4, maxZ: 36 },
+  // Zone reserved for terrace architecture (stairs, arcade, deck, upper
+  // terrace). Landscape keeps trees and paths out of it.
+  terraceZone: { halfWidth: 58, minZ: 28, maxZ: 66 },
 
   lake: {
     waterLevel: -0.8,
-    // Straight coped edge in front of the lower terrace. Kept between terrain
-    // grid rows (cellSize 4) so the coarse grid drops below water at the wall.
-    plazaShoreZ: -41,
-    landingDepth: 3.9, // paved lake-edge landing behind the coping
-    copingHalfWidth: 47,
+    // Seawall + balustrade along the plaza's north edge (terrace module).
+    plazaShoreZ: -42,
+    // Inside the seawall span the terrain bank is pulled back under the
+    // plaza slab so the coarse grid is already below water at the wall.
+    seawallInset: 2.5,
+    copingHalfWidth: 50,
     maxDepth: 3.0,
   },
 
-  mall: { centreX: 0, startZ: 36, endZ: 262, walkWidth: 11, innerRowX: 7.5, outerRowX: 19.5, sidePathX: 13.5, treeSpacing: 9 },
+  mall: { centreX: 0, startZ: 64, endZ: 262, walkWidth: 11, innerRowX: 7.5, outerRowX: 19.5, sidePathX: 13.5, treeSpacing: 9 },
 
-  terraceDrive: { z: 23, width: 9, bridgeHalfSpan: 24 },
+  // Drive asphalt on the deck (z[39,47], |x| <= 50) is terrace's; landscape continues it.
+  terraceDrive: { z: 43, width: 8, bridgeHalfSpan: 50 },
 };
 
 // Shore line as z (north edge of land) for a given x. Straight along the
@@ -56,7 +60,7 @@ export function pathDefinitions() {
   const { mall, terraceDrive: td, bounds } = LAYOUT;
   const lakeside = (sign) => {
     const pts = [];
-    for (let ax = 52; ax <= bounds.maxX - 4; ax += 6) {
+    for (let ax = 56; ax <= bounds.maxX - 4; ax += 6) {
       const x = sign * ax;
       pts.push([x, shoreZ(x) + 7]);
     }
@@ -71,11 +75,11 @@ export function pathDefinitions() {
     { id: 'lakeside-west', surface: 'asphalt', width: 4, points: lakeside(-1) },
     { id: 'lakeside-east', surface: 'asphalt', width: 4, points: lakeside(1) },
     // Paths descending the wooded flanks from the upper level to the lakeside.
-    { id: 'flank-west', surface: 'asphalt', width: 4, points: [[-66, 44], [-80, 18], [-92, -4], [-104, shoreZ(-104) + 7]] },
-    { id: 'flank-east', surface: 'asphalt', width: 4, points: [[66, 44], [80, 18], [92, -4], [104, shoreZ(104) + 7]] },
+    { id: 'flank-west', surface: 'asphalt', width: 4, points: [[-66, 70], [-80, 40], [-92, 8], [-104, shoreZ(-104) + 7]] },
+    { id: 'flank-east', surface: 'asphalt', width: 4, points: [[66, 70], [80, 40], [92, 8], [104, shoreZ(104) + 7]] },
     // Lateral walks along the south end of the Mall toward the flanks.
-    { id: 'mall-cross-west', surface: 'asphalt', width: 4, points: [[-mall.outerRowX - 3, 48], [-66, 44]] },
-    { id: 'mall-cross-east', surface: 'asphalt', width: 4, points: [[mall.outerRowX + 3, 48], [66, 44]] },
+    { id: 'mall-cross-west', surface: 'asphalt', width: 4, points: [[-mall.outerRowX - 3, 74], [-66, 70]] },
+    { id: 'mall-cross-east', surface: 'asphalt', width: 4, points: [[mall.outerRowX + 3, 74], [66, 70]] },
   ];
 }
 

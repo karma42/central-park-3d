@@ -17,12 +17,20 @@ export function plazaWeight(x, z) {
   return (1 - smoothstep(plaza.halfWidth, plaza.halfWidth + 8, ax)) * (1 - smoothstep(plaza.southZ, plaza.southZ + 4, z));
 }
 
+// Shore used for terrain shaping. Along the seawall it sits a little south of
+// the real edge (under the plaza slab) so the 4 m grid is below water at the wall.
+export function terrainShoreZ(x) {
+  const { plaza, lake } = LAYOUT;
+  return shoreZ(x) + lake.seawallInset * (1 - smoothstep(plaza.halfWidth, plaza.halfWidth + 6, Math.abs(x)));
+}
+
 // Ground height (metres) at park coordinates (x, z). Includes the lake bed.
-// Terrace architecture (stairs, arcade, fountain) sits on top of this.
+// Terrace architecture (slab, stairs, arcade, deck, fountain) sits on top of
+// this; inside its footprint the ground stays at or below the slab/deck.
 export function heightAt(x, z) {
   const { plaza, upper, lake } = LAYOUT;
   const ax = Math.abs(x);
-  const s = z - shoreZ(x); // > 0 on land, < 0 in the Lake
+  const s = z - terrainShoreZ(x); // > 0 on land, < 0 in the Lake
   const p = plazaWeight(x, z);
   const nearPlaza = 1 - smoothstep(plaza.halfWidth, plaza.halfWidth + 14, ax);
   const n = undulation(x, z);
@@ -32,12 +40,14 @@ export function heightAt(x, z) {
   low = lerp(0.15, low, smoothstep(0, 14, s));
   low = lerp(low, 0, p);
 
-  // Upper level: near flat along the Mall, undulating further out.
-  const high = upper.height + 0.6 * n * smoothstep(25, 50, ax);
+  // Upper level: flat across the deck/Mall width, undulating further out.
+  const high = upper.height + 0.6 * n * smoothstep(plaza.halfWidth, plaza.halfWidth + 15, ax);
 
-  // Hard step under the terrace (architecture fills it), soft wooded slope on the flanks.
-  const ramp = lerp(30, 3, nearPlaza);
-  const u = smoothstep(upper.startZ - ramp, upper.startZ, z);
+  // Hard step hidden under the deck (starting one grid row past the arcade
+  // wall so no triangle pokes through the plaza slab), soft slope on the flanks.
+  const stepEnd = lerp(upper.startZ, upper.startZ + 4, nearPlaza);
+  const ramp = lerp(30, 2, nearPlaza);
+  const u = smoothstep(stepEnd - ramp, stepEnd, z);
   const land = lerp(low, high, u);
 
   if (s >= 0) return land;
@@ -46,7 +56,7 @@ export function heightAt(x, z) {
 }
 
 export function groundColor(x, z, y) {
-  const s = z - shoreZ(x);
+  const s = z - terrainShoreZ(x);
   if (s < 0) return COLORS.lakeBed;
   if (plazaWeight(x, z) > 0.5) return COLORS.plaza;
   if (s < 2.5) return COLORS.bank;
