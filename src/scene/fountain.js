@@ -51,8 +51,9 @@ function angel(b) {
   const lShoulder = [0.24, 1.8, 0.0], lElbow = [0.3, 1.5, 0.12], lHand = [0.12, 1.42, 0.24];
   b.limb(lShoulder, lElbow, 0.065, 0.055);
   b.limb(lElbow, lHand, 0.055, 0.045);
-  b.limb([0.16, 1.18, 0.26], [0.06, 1.98, 0.22], 0.018, 0.014, 5); // lily stem
-  b.with(translate(0.06, 1.98, 0.22), (f) => f.cylinder(0.01, 0.08, 0, 0.12, 6)); // lily bloom
+  // Lily held beside the body, its bloom at shoulder height clear of the face.
+  b.limb([0.06, 1.2, 0.25], [0.36, 1.86, 0.3], 0.018, 0.014, 5); // lily stem
+  b.with(translate(0.36, 1.86, 0.3), (f) => f.cylinder(0.01, 0.08, 0, 0.12, 6)); // lily bloom
 
   // Wings rising from the upper back, swept back and spread wide.
   const wingOutline = [
