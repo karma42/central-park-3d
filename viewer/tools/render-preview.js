@@ -12,9 +12,9 @@ import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { deflateSync } from 'node:zlib';
 import { normalizeScene, sceneStats, meshBoundingSphere } from '../src/scene-data.js';
-import { createCamera, eyePosition, viewMatrix } from '../src/camera.js';
+import { createCamera, eyePosition, viewMatrix, projectionMatrix } from '../src/camera.js';
 import { applyViewParams } from '../src/view-params.js';
-import { mat4Multiply, mat4Perspective } from '../src/math.js';
+import { mat4Multiply } from '../src/math.js';
 import { SKY_COLOR, sortFarToNear } from '../src/renderer.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -56,9 +56,7 @@ export function renderScene(scene, cam, width, height, ss = 2) {
   const depth = new Float32Array(W * H).fill(Infinity);
   for (let i = 0; i < W * H; i++) color.set(SKY_COLOR, i * 3);
 
-  const near = cam.mode === 'walk' ? 0.1 : 0.5;
-  const proj = mat4Perspective((60 * Math.PI) / 180, width / height, near, 3000);
-  const vp = mat4Multiply(proj, viewMatrix(cam));
+  const vp = mat4Multiply(projectionMatrix(cam, width / height), viewMatrix(cam));
   const eye = eyePosition(cam);
   let triangles = 0;
 

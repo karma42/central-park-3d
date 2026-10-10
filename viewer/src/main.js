@@ -1,8 +1,8 @@
 // Viewer entry point: load scene, create renderer and controls, run the frame loop.
 import { Renderer } from './renderer.js';
 import { Controls } from './controls.js';
-import { createCamera, resetCamera, setMode, eyePosition, viewMatrix } from './camera.js';
-import { mat4Multiply, mat4Perspective } from './math.js';
+import { createCamera, resetCamera, setMode, eyePosition, viewMatrix, projectionMatrix } from './camera.js';
+import { mat4Multiply } from './math.js';
 import { normalizeScene, sceneStats } from './scene-data.js';
 import { applyViewParams } from './view-params.js';
 
@@ -115,9 +115,7 @@ async function start() {
     const view = viewMatrix(cam);
     const key = `${aspect}|${Array.from(view).map((v) => v.toFixed(5)).join(',')}`;
     if (key !== lastKey) {
-      const near = cam.mode === 'walk' ? 0.1 : 0.5;
-      const proj = mat4Perspective((60 * Math.PI) / 180, aspect, near, 3000);
-      frameInfo = renderer.render(mat4Multiply(proj, view), eye);
+      frameInfo = renderer.render(mat4Multiply(projectionMatrix(cam, aspect), view), eye);
       lastKey = key;
       frames++;
     }

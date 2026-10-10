@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  createCamera, resetCamera, eyePosition, rotate, zoom, pan, walk, setMode,
-  EYE_HEIGHT, WALK_SPEED, ORBIT_MIN_DISTANCE, ORBIT_MAX_PITCH, WALK_PITCH_LIMIT,
+  createCamera, resetCamera, eyePosition, rotate, zoom, pan, walk, setMode, clipRange,
+  EYE_HEIGHT, WALK_SPEED, ORBIT_MIN_DISTANCE, ORBIT_MAX_PITCH, WALK_PITCH_LIMIT, HOME_MAX_DISTANCE,
 } from '../src/camera.js';
 import { applyViewParams } from '../src/view-params.js';
 
@@ -69,6 +69,32 @@ test('canWalk blocks movement and slides along the walkable axis', () => {
   walk(cam, 1, 0, 1);
   near(cam.walk.position[2], -9);
   assert.ok(cam.walk.position[0] < 0);
+});
+
+test('home orbit view focuses the spawn area at a bounded distance, or scene.view', () => {
+  const big = { bounds: { min: [-1000, 0, -1000], max: [1000, 20, 1000] }, spawn: { position: [4, 0, 28] } };
+  const cam = createCamera(big);
+  assert.deepEqual(cam.orbit.target, [4, 0, 28]);
+  near(cam.orbit.distance, HOME_MAX_DISTANCE);
+  const custom = createCamera({ ...big, view: { target: [0, 0, 10], distance: 120, yaw: 0.2, pitch: -0.4 } });
+  assert.deepEqual(custom.orbit.target, [0, 0, 10]);
+  near(custom.orbit.distance, 120);
+  near(custom.orbit.yaw, 0.2);
+});
+
+test('clip range keeps the scene inside the far plane with a tight near plane', () => {
+  const cam = createCamera(scene());
+  zoom(cam, 1e6); // furthest orbit
+  let { near: n, far } = clipRange(cam);
+  const eye = eyePosition(cam);
+  for (const corner of [[-100, 0, -100], [100, 20, 100], [-100, 20, 100], [100, 0, -100]]) {
+    assert.ok(Math.hypot(...corner.map((v, i) => v - eye[i])) < far, 'scene corner within far plane');
+  }
+  assert.ok(far / n < 5000, `depth ratio ${far / n}`);
+  setMode(cam, 'walk');
+  ({ near: n, far } = clipRange(cam));
+  assert.ok(n >= 0.2 && n <= 0.3);
+  assert.ok(far > cam.diagonal, 'walker sees across the whole scene');
 });
 
 test('zoom and pitch limits hold', () => {

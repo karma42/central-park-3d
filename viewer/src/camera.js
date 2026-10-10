@@ -1,5 +1,5 @@
 // Camera state for orbit and walk navigation. Pure functions so they can be unit-tested in Node.
-import { clamp, directionFromYawPitch, mat4LookAt } from './math.js';
+import { clamp, directionFromYawPitch, mat4LookAt, mat4Perspective } from './math.js';
 
 export const EYE_HEIGHT = 1.7; // metres above ground in walk mode
 export const WALK_SPEED = 4; // m/s, roughly a brisk walk
@@ -9,9 +9,16 @@ export const ORBIT_MAX_PITCH = -0.05; // orbit always looks slightly down
 export const ORBIT_MIN_PITCH = -1.5;
 export const WALK_PITCH_LIMIT = 1.4;
 
+export const HOME_MAX_DISTANCE = 200; // keeps the start view on the subject, not the whole tile
+export const FOV_Y = (60 * Math.PI) / 180;
+
 const flatGround = () => 0;
 
-/** Initial camera state derived from scene bounds and optional spawn point. */
+/**
+ * Initial camera state derived from scene bounds and optional spawn point / home view.
+ * scene.view = { target:[x,y,z], distance, yaw, pitch } overrides the orbit start view;
+ * otherwise it orbits the spawn point (the area of interest), or the bounds centre.
+ */
 export function createCamera(scene) {
   const { min, max } = scene.bounds;
   const centre = [(min[0] + max[0]) / 2, (min[1] + max[1]) / 2, (min[2] + max[2]) / 2];
@@ -22,14 +29,17 @@ export function createCamera(scene) {
     yaw: 0,
     pitch: 0,
   };
+  const view = scene.view || {};
+  const focus = view.target || (scene.spawn ? spawn.position : centre);
+  const maxDistance = size * 2;
   const home = {
     mode: 'orbit',
     orbit: {
-      target: [centre[0], ground(centre[0], centre[2]), centre[2]],
-      distance: size * 0.6,
-      yaw: 0.6,
-      pitch: -0.55,
-      maxDistance: size * 2,
+      target: [focus[0], ground(focus[0], focus[2]), focus[2]],
+      distance: clamp(view.distance ?? Math.min(size * 0.6, HOME_MAX_DISTANCE), ORBIT_MIN_DISTANCE, maxDistance),
+      yaw: view.yaw ?? 0.6,
+      pitch: clamp(view.pitch ?? -0.55, ORBIT_MIN_PITCH, ORBIT_MAX_PITCH),
+      maxDistance,
     },
     walk: {
       position: [...spawn.position],
@@ -39,10 +49,27 @@ export function createCamera(scene) {
     bounds: { min: [...min], max: [...max] },
   };
   const canWalk = typeof scene.canWalk === 'function' ? scene.canWalk : null;
-  return { ...cloneState(home), home, ground, canWalk };
+  const diagonal = Math.hypot(max[0] - min[0], max[1] - min[1], max[2] - min[2]) || 1;
+  return { ...cloneState(home), home, ground, canWalk, diagonal };
+}
+
+/**
+ * Near/far clip distances. Tight ranges keep depth precision where it matters, which reduces
+ * z-fighting between nearly coplanar surfaces (paving over terrain, paths over grass).
+ */
+export function clipRange(cam) {
+  if (cam.mode === 'walk') return { near: 0.25, far: cam.diagonal * 1.2 + 50 };
+  const near = Math.max(0.5, cam.orbit.distance * 0.02);
+  return { near, far: cam.orbit.distance + cam.diagonal * 1.2 + 50 };
+}
+
+export function projectionMatrix(cam, aspect) {
+  const { near, far } = clipRange(cam);
+  return mat4Perspective(FOV_Y, aspect, near, far);
 }
 
 function cloneState(s) {
+  // Only the navigable state; ground/canWalk/diagonal stay on the camera object across resets.
   return {
     mode: s.mode,
     orbit: { ...s.orbit, target: [...s.orbit.target] },
