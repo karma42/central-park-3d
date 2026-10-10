@@ -40,6 +40,7 @@ buildScene() → {
   bounds,                       // optional { min:[x,y,z], max:[x,y,z] }; computed when absent
   spawn,                        // optional { position:[x,y,z], yaw, pitch } for walk mode
   groundHeight | heightAt,      // optional (x, z) => y; walk mode follows it
+  canWalk,                      // optional (x, z) => boolean; walk mode won't enter false areas (e.g. the Lake)
 }
 ```
 
@@ -58,7 +59,7 @@ Front faces are counter-clockwise. Yaw 0 looks toward −Z (the Lake, park-north
 
 - `C` or `Tab` (or the toolbar button) switches modes. The viewpoint carries across, so walk starts where the orbit was centred.
 - `R` (or **Reset view**) returns to the starting view in the current mode.
-- Walk mode keeps the eye 1.7 m above the ground function, moves at 4 m/s (12 m/s running), and stays inside the scene bounds. Collisions with walls are not modelled.
+- Walk mode keeps the eye 1.7 m above the ground function, moves at 4 m/s (12 m/s running), stays inside the scene bounds and slides along `canWalk` edges such as the shoreline. Collisions with walls are not modelled.
 
 ### Reproducible viewpoints
 
@@ -114,6 +115,6 @@ The viewer and scene are static files: HTML, ES modules and no server code. They
 
 ## Known limitations
 
-- No collision with walls, stairs or water in walk mode. The walker follows only the ground function.
+- No collision with walls or stairs in walk mode. The walker follows the ground function, and `canWalk` blocks only whole areas such as water.
 - No textures, shadows or water animation. Lighting is one sun plus sky ambient with distance fog.
 - Real-browser screenshots are not yet in the repository; see *Evidence for review* above.

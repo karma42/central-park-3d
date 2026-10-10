@@ -59,6 +59,18 @@ test('walk and pan are clamped to scene bounds', () => {
   assert.ok(cam.orbit.target[2] <= 100 && cam.orbit.target[2] >= -100);
 });
 
+test('canWalk blocks movement and slides along the walkable axis', () => {
+  const lakeNorthOf = -10; // z < -10 is water
+  const cam = createCamera(scene({ canWalk: (x, z) => z >= lakeNorthOf, spawn: { position: [0, 0, -9], yaw: 0, pitch: 0 } }));
+  cam.mode = 'walk';
+  walk(cam, 1, 0, 2); // straight into the water: stays on shore
+  near(cam.walk.position[2], -9);
+  cam.walk.yaw = Math.PI / 4; // diagonal toward -X and -Z: slides along the shore
+  walk(cam, 1, 0, 1);
+  near(cam.walk.position[2], -9);
+  assert.ok(cam.walk.position[0] < 0);
+});
+
 test('zoom and pitch limits hold', () => {
   const cam = createCamera(scene());
   zoom(cam, 1e-6);

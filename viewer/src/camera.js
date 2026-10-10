@@ -38,7 +38,8 @@ export function createCamera(scene) {
     },
     bounds: { min: [...min], max: [...max] },
   };
-  return { ...cloneState(home), home, ground };
+  const canWalk = typeof scene.canWalk === 'function' ? scene.canWalk : null;
+  return { ...cloneState(home), home, ground, canWalk };
 }
 
 function cloneState(s) {
@@ -113,11 +114,18 @@ export function walk(cam, forward, right, dt, run = false) {
   const speed = WALK_SPEED * (run ? RUN_MULTIPLIER : 1) * dt / Math.max(len, 1);
   const w = cam.walk;
   const s = Math.sin(w.yaw), c = Math.cos(w.yaw);
-  const x = w.position[0] + (c * right - s * forward) * speed;
-  const z = w.position[2] + (-s * right - c * forward) * speed;
-  w.position[0] = clamp(x, cam.bounds.min[0], cam.bounds.max[0]);
-  w.position[2] = clamp(z, cam.bounds.min[2], cam.bounds.max[2]);
-  w.position[1] = cam.ground(w.position[0], w.position[2]);
+  const x0 = w.position[0], z0 = w.position[2];
+  let x = clamp(x0 + (c * right - s * forward) * speed, cam.bounds.min[0], cam.bounds.max[0]);
+  let z = clamp(z0 + (-s * right - c * forward) * speed, cam.bounds.min[2], cam.bounds.max[2]);
+  if (cam.canWalk && !cam.canWalk(x, z)) {
+    // Slide along whichever axis is still walkable, otherwise stay put.
+    if (cam.canWalk(x, z0)) z = z0;
+    else if (cam.canWalk(x0, z)) x = x0;
+    else { x = x0; z = z0; }
+  }
+  w.position[0] = x;
+  w.position[2] = z;
+  w.position[1] = cam.ground(x, z);
 }
 
 /** Switch modes, carrying the viewpoint across so the user does not lose their place. */
