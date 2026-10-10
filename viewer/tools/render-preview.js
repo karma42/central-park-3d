@@ -28,7 +28,7 @@ export const DEFAULT_VIEWS = {
   'fountain-orbit': 'mode=orbit&tx=0&tz=0&dist=90&yaw=0.5&pitch=-0.45',
   'walk-plaza-to-lake': 'mode=walk&x=4&z=28&yaw=0&pitch=0.02',
   'walk-plaza-to-arcade': 'mode=walk&x=-6&z=-36&yaw=3.14159&pitch=0.1',
-  'walk-upper-terrace': 'mode=walk&x=0&z=60&yaw=0&pitch=-0.12',
+  'walk-upper-terrace': 'mode=walk&x=14&z=58&yaw=0.25&pitch=-0.12',
 };
 
 // ---- shading, kept in step with the fragment shader in renderer.js ----

@@ -108,7 +108,9 @@ For each image it prints scene statistics and the matching `viewer/index.html?â€
 node --test 'viewer/test/*.test.js'
 ```
 
-The tests cover the matrix and frustum maths, orbit/walk/reset camera behaviour and limits, URL viewpoints, scene-data validation and normalization, the preview rasterizer (coverage, back-face culling, near-plane clipping) and the PNG encoder.
+`scene-integration.test.js` runs the real scene through the viewer pipeline whenever the scene modules are in the checkout, and skips otherwise. It uses `src/scene/index.js` if present, or else composes the terrace, fountain and landscape modules. It checks the triangle, GPU memory and draw-call budget, walk heights on the plaza, deck and upper terrace, the walker stopping at the Lake, and geometry in every default preview view. A local merge of PRs #2, #3 and #4 on 2026-10-10 measured 14 meshes, about 122k vertices, 79.6k triangles, 4.65 MB of GPU buffers and 6 ms to normalize, and all 33 tests passed.
+
+The tests also cover the matrix and frustum maths, orbit/walk/reset camera behaviour and limits, URL viewpoints, scene-data validation and normalization, the preview rasterizer (coverage, back-face culling, near-plane clipping) and the PNG encoder.
 
 ## Hosting
 
