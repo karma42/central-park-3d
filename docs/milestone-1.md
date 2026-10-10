@@ -77,4 +77,4 @@ These were measured on 2026-10-10 on a local merge of main with #2 @ 926d338, #4
 - **No real browser was run.** No agent could launch one, so WebGL shader compilation and on-screen output are untested. The tests cover JavaScript logic, scene data and the CPU preview path. **Owner check needed:** open the viewer and confirm it renders and navigates.
 - The images are offline CPU renders from `viewer/tools/render-preview.js`, which uses the viewer's own camera and shading constants. They are not browser screenshots.
 - Dimensions are approximate and the geography has not been checked against primary sources.
-- Walk collisions are based on ground height (a step of more than 0.6 m blocks). Thin objects such as balustrades, trees and the fountain statue are not solid.
+- Walk collisions are based on ground height (a step of more than 0.6 m blocks). Objects not represented in the ground height, likely including balustrades and trees, are probably not solid. This has not been checked one by one.
