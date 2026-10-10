@@ -39,9 +39,9 @@ Each preview line printed by `npm run preview` includes the matching viewer URL,
 
 ## Results
 
-These were measured on 2026-10-10 on a local merge of main with #2 @ 7933b1c, #4 @ 2f6b48e, #3 @ 5f371e0 and #6.
+These were measured on 2026-10-10 on a local merge of main with #2 @ 926d338, #4 @ 2f6b48e, #3 @ 8568a24 and #6.
 
-- `npm test`: **65/65 pass, 0 skipped**. That includes the viewer's integration tests against the real `src/scene/index.js`: walk heights on the plaza, deck and upper terrace; walkers not tunnelling across the Lake; geometry visible in every viewpoint.
+- `npm test`: **71/71 pass, 0 skipped**. That includes the viewer's integration tests against the real `src/scene/index.js`: walk heights on the plaza, deck and upper terrace; walkers not tunnelling across the Lake; walk collisions with the arcade facade, deck edges and seawall, with the grand stairs climbable; geometry visible in every viewpoint.
 - Scene: **14 meshes, 138,344 vertices, 86,840 triangles, 5.39 MB of GPU buffers**, built and normalized in about 56 ms in Node.
   - Landscape: 49k triangles, 88 Mall elms and 420 scattered trees.
   - Terrace and fountain: 37.5k triangles.
@@ -70,11 +70,11 @@ These were measured on 2026-10-10 on a local merge of main with #2 @ 7933b1c, #4
 | A walker could tunnel across the Lake to the new far bank in one long step | viewer | 5f371e0 (0.5 m sub-steps) |
 | The angel's lily covered her face | terrace | 2f6b48e |
 | A pale strip on the far bank (the plaza flattening had no north limit) | landscape | d51f7fa |
+| A hard scene edge showed against the sky; the walker passed through walls | viewer | 8568a24 (edge fog; sub-steps refused when the ground changes by more than 0.6 m) |
 
 ## Not verified / known limitations
 
 - **No real browser was run.** No agent could launch one, so WebGL shader compilation and on-screen output are untested. The tests cover JavaScript logic, scene data and the CPU preview path. **Owner check needed:** open the viewer and confirm it renders and navigates.
 - The images are offline CPU renders from `viewer/tools/render-preview.js`, which uses the viewer's own camera and shading constants. They are not browser screenshots.
 - Dimensions are approximate and the geography has not been checked against primary sources.
-- Walk mode follows ground height and stays out of the Lake, but has no wall collisions.
-- The scene edge is visible from high orbit views (open item on #7).
+- Walk collisions are based on ground height (a step of more than 0.6 m blocks). Thin objects such as balustrades, trees and the fountain statue are not solid.
