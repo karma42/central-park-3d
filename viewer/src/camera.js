@@ -134,21 +134,27 @@ export function pan(cam, right, forward) {
 /**
  * Walk by an input vector over dt seconds. forward/right in [-1,1]; run multiplies speed.
  * Movement is horizontal; height follows the ground; position is clamped to scene bounds.
+ * Long moves are split into short sub-steps so canWalk cannot be tunnelled through.
  */
+export const WALK_SUBSTEP = 0.5; // metres
+
 export function walk(cam, forward, right, dt, run = false) {
   const len = Math.hypot(forward, right);
   if (len === 0) return;
-  const speed = WALK_SPEED * (run ? RUN_MULTIPLIER : 1) * dt / Math.max(len, 1);
+  const distance = WALK_SPEED * (run ? RUN_MULTIPLIER : 1) * dt * Math.min(len, 1);
   const w = cam.walk;
   const s = Math.sin(w.yaw), c = Math.cos(w.yaw);
-  const x0 = w.position[0], z0 = w.position[2];
-  let x = clamp(x0 + (c * right - s * forward) * speed, cam.bounds.min[0], cam.bounds.max[0]);
-  let z = clamp(z0 + (-s * right - c * forward) * speed, cam.bounds.min[2], cam.bounds.max[2]);
-  if (cam.canWalk && !cam.canWalk(x, z)) {
+  const dx = (c * right - s * forward) / len, dz = (-s * right - c * forward) / len;
+  const steps = Math.max(1, Math.ceil(distance / WALK_SUBSTEP));
+  const step = distance / steps;
+  let x = w.position[0], z = w.position[2];
+  for (let i = 0; i < steps; i++) {
+    const nx = clamp(x + dx * step, cam.bounds.min[0], cam.bounds.max[0]);
+    const nz = clamp(z + dz * step, cam.bounds.min[2], cam.bounds.max[2]);
+    if (!cam.canWalk || cam.canWalk(nx, nz)) { x = nx; z = nz; }
     // Slide along whichever axis is still walkable, otherwise stay put.
-    if (cam.canWalk(x, z0)) z = z0;
-    else if (cam.canWalk(x0, z)) x = x0;
-    else { x = x0; z = z0; }
+    else if (cam.canWalk(nx, z)) x = nx;
+    else if (cam.canWalk(x, nz)) z = nz;
   }
   w.position[0] = x;
   w.position[2] = z;

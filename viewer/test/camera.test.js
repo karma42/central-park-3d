@@ -63,12 +63,13 @@ test('canWalk blocks movement and slides along the walkable axis', () => {
   const lakeNorthOf = -10; // z < -10 is water
   const cam = createCamera(scene({ canWalk: (x, z) => z >= lakeNorthOf, spawn: { position: [0, 0, -9], yaw: 0, pitch: 0 } }));
   cam.mode = 'walk';
-  walk(cam, 1, 0, 2); // straight into the water: stays on shore
-  near(cam.walk.position[2], -9);
+  walk(cam, 1, 0, 2); // straight into the water: walks up to the shore and stops there
+  const shoreZ = cam.walk.position[2];
+  assert.ok(shoreZ >= lakeNorthOf && shoreZ < lakeNorthOf + 0.5, `stopped at z=${shoreZ}`);
   cam.walk.yaw = Math.PI / 4; // diagonal toward -X and -Z: slides along the shore
   walk(cam, 1, 0, 1);
-  near(cam.walk.position[2], -9);
-  assert.ok(cam.walk.position[0] < 0);
+  near(cam.walk.position[2], shoreZ);
+  assert.ok(cam.walk.position[0] < -2);
 });
 
 test('home orbit view focuses the spawn area at a bounded distance, or scene.view', () => {
@@ -95,6 +96,13 @@ test('clip range keeps the scene inside the far plane with a tight near plane', 
   ({ near: n, far } = clipRange(cam));
   assert.ok(n >= 0.2 && n <= 0.3);
   assert.ok(far > cam.diagonal, 'walker sees across the whole scene');
+});
+
+test('a long walk step cannot tunnel across a thin unwalkable strip', () => {
+  const cam = createCamera(scene({ canWalk: (x, z) => z > -12 || z < -14, spawn: { position: [0, 0, 0], yaw: 0, pitch: 0 } }));
+  cam.mode = 'walk';
+  walk(cam, 1, 0, 10); // 40 m in one call
+  assert.ok(cam.walk.position[2] > -12, `crossed the strip: z=${cam.walk.position[2]}`);
 });
 
 test('zoom and pitch limits hold', () => {
