@@ -15,6 +15,7 @@ import { normalizeScene, sceneStats, meshBoundingSphere } from '../src/scene-dat
 import { createCamera, eyePosition, viewMatrix, projectionMatrix } from '../src/camera.js';
 import { applyViewParams } from '../src/view-params.js';
 import { mat4Multiply } from '../src/math.js';
+import { fogParams, fogFactor } from '../src/fog.js';
 import { SKY_COLOR, sortFarToNear } from '../src/renderer.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -33,20 +34,17 @@ export const DEFAULT_VIEWS = {
 
 // ---- shading, kept in step with the fragment shader in renderer.js ----
 const SUN = (() => { const s = [0.45, 0.8, 0.35]; const l = Math.hypot(...s); return s.map((v) => v / l); })();
-const FOG_DENSITY = 0.0025;
 
-function shade(color, normal, dist) {
+// Lighting is evaluated per vertex (Gouraud); fog per pixel from the interpolated world
+// position, like the shader, so large slabs with vertices only at the scene edge fog correctly.
+function shade(color, normal) {
   const len = Math.hypot(normal[0], normal[1], normal[2]) || 1;
   const nx = normal[0] / len, ny = normal[1] / len, nz = normal[2] / len;
   const sun = Math.max(nx * SUN[0] + ny * SUN[1] + nz * SUN[2], 0);
   const sky = 0.5 + 0.5 * ny;
   const amb = [0.32 + (0.55 - 0.32) * sky, 0.30 + (0.60 - 0.30) * sky, 0.26 + (0.70 - 0.26) * sky];
   const sunC = [0.75, 0.72, 0.62];
-  const fog = Math.min(Math.max(1 - Math.exp(-FOG_DENSITY * dist), 0), 1);
-  return [0, 1, 2].map((k) => {
-    const c = color[k] * (amb[k] + sunC[k] * sun);
-    return c + (SKY_COLOR[k] - c) * fog;
-  });
+  return [0, 1, 2].map((k) => color[k] * (amb[k] + sunC[k] * sun));
 }
 
 // ---- rasterizer ----
@@ -58,6 +56,7 @@ export function renderScene(scene, cam, width, height, ss = 2) {
 
   const vp = mat4Multiply(projectionMatrix(cam, width / height), viewMatrix(cam));
   const eye = eyePosition(cam);
+  const fogP = fogParams(scene.bounds);
   let triangles = 0;
 
   const withSpheres = scene.meshes.map((m) => ({ m, sphere: meshBoundingSphere(m.positions) }));
@@ -74,24 +73,30 @@ export function renderScene(scene, cam, width, height, ss = 2) {
     for (let i = 0; i < n; i++) {
       const x = m.positions[i * 3], y = m.positions[i * 3 + 1], z = m.positions[i * 3 + 2];
       for (let r = 0; r < 4; r++) clip[i * 4 + r] = vp[r] * x + vp[4 + r] * y + vp[8 + r] * z + vp[12 + r];
-      const dist = Math.hypot(x - eye[0], y - eye[1], z - eye[2]);
-      lit.set(shade(m.colors.subarray(i * 3, i * 3 + 3), m.normals.subarray(i * 3, i * 3 + 3), dist), i * 3);
+      lit.set(shade(m.colors.subarray(i * 3, i * 3 + 3), m.normals.subarray(i * 3, i * 3 + 3)), i * 3);
     }
+    // Per-vertex attributes: lit rgb, then world xyz (for per-pixel fog).
     const vert = (i) => ({
       c: [clip[i * 4], clip[i * 4 + 1], clip[i * 4 + 2], clip[i * 4 + 3]],
-      col: [lit[i * 3], lit[i * 3 + 1], lit[i * 3 + 2]],
+      attr: [lit[i * 3], lit[i * 3 + 1], lit[i * 3 + 2],
+        m.positions[i * 3], m.positions[i * 3 + 1], m.positions[i * 3 + 2]],
     });
+    const raster = { W, H, color, depth, opacity, doubleSided: m.doubleSided, eye, fogP };
     for (let t = 0; t < m.indices.length; t += 3) {
       const poly = clipNear([vert(m.indices[t]), vert(m.indices[t + 1]), vert(m.indices[t + 2])]);
       if (poly.length < 3) continue;
-      const s = poly.map((v) => ({
-        x: (v.c[0] / v.c[3] * 0.5 + 0.5) * W,
-        y: (1 - (v.c[1] / v.c[3] * 0.5 + 0.5)) * H,
-        z: v.c[2] / v.c[3],
-        col: v.col,
-      }));
+      const s = poly.map((v) => {
+        const invW = 1 / v.c[3];
+        return {
+          x: (v.c[0] * invW * 0.5 + 0.5) * W,
+          y: (1 - (v.c[1] * invW * 0.5 + 0.5)) * H,
+          z: v.c[2] * invW,
+          invW,
+          attrW: v.attr.map((a) => a * invW), // pre-divided for perspective-correct interpolation
+        };
+      });
       for (let k = 1; k + 1 < s.length; k++) {
-        if (drawTriangle(s[0], s[k], s[k + 1], m.doubleSided, opacity, W, H, color, depth)) triangles++;
+        if (drawTriangle(s[0], s[k], s[k + 1], raster)) triangles++;
       }
     }
   }
@@ -110,7 +115,7 @@ function clipNear(poly) {
       const t = da / (da - db);
       out.push({
         c: a.c.map((v, k) => v + (b.c[k] - v) * t),
-        col: a.col.map((v, k) => v + (b.col[k] - v) * t),
+        attr: a.attr.map((v, k) => v + (b.attr[k] - v) * t),
       });
     }
   }
@@ -118,7 +123,7 @@ function clipNear(poly) {
 }
 
 // Opaque triangles write depth; translucent ones (opacity < 1) blend over and leave depth untouched.
-function drawTriangle(a, b, c, doubleSided, opacity, W, H, color, depth) {
+function drawTriangle(a, b, c, { W, H, color, depth, opacity, doubleSided, eye, fogP }) {
   const area = (b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y);
   if (area === 0) return false;
   // Screen y points down, so counter-clockwise (front-facing) triangles have negative area.
@@ -142,8 +147,13 @@ function drawTriangle(a, b, c, doubleSided, opacity, W, H, color, depth) {
       const idx = y * W + x;
       if (z >= depth[idx]) continue;
       if (opacity >= 1) depth[idx] = z;
+      const iw = 1 / (w0 * a.invW + w1 * b.invW + w2 * c.invW);
+      const at = (k) => (w0 * a.attrW[k] + w1 * b.attrW[k] + w2 * c.attrW[k]) * iw;
+      const wx = at(3), wy = at(4), wz = at(5);
+      const fog = fogFactor(fogP, Math.hypot(wx - eye[0], wy - eye[1], wz - eye[2]), wx, wz);
       for (let k = 0; k < 3; k++) {
-        const src = w0 * a.col[k] + w1 * b.col[k] + w2 * c.col[k];
+        const lit = at(k);
+        const src = lit + (SKY_COLOR[k] - lit) * fog;
         color[idx * 3 + k] = opacity >= 1 ? src : src * opacity + color[idx * 3 + k] * (1 - opacity);
       }
     }

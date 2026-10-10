@@ -5,6 +5,7 @@ import { createCamera, resetCamera, setMode, eyePosition, viewMatrix, projection
 import { mat4Multiply } from './math.js';
 import { normalizeScene, sceneStats } from './scene-data.js';
 import { applyViewParams } from './view-params.js';
+import { fogParams } from './fog.js';
 
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
@@ -61,6 +62,7 @@ async function start() {
   await nextFrame();
   const scene = normalizeScene(raw);
   renderer.upload(scene.meshes);
+  renderer.setFog(fogParams(scene.bounds));
   const stats = sceneStats(scene);
   const loadMs = Math.round(performance.now() - t0);
   const buildMs = Math.round(tBuild - t0);

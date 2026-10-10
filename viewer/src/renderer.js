@@ -1,7 +1,8 @@
-// Small WebGL renderer: per-vertex colour, one sun light, hemisphere ambient, distance fog,
-// per-mesh frustum culling. GLSL 100 so it runs on WebGL2 or WebGL1.
+// Small WebGL renderer: per-vertex colour, one sun light, hemisphere ambient, distance and
+// scene-edge fog (see fog.js), per-mesh frustum culling. GLSL 100 so it runs on WebGL2 or WebGL1.
 import { frustumPlanes, sphereInFrustum } from './math.js';
 import { meshBoundingSphere } from './scene-data.js';
+import { fogParams } from './fog.js';
 
 const VS = `
 attribute vec3 aPosition;
@@ -12,30 +13,46 @@ uniform vec3 uEye;
 varying vec3 vNormal;
 varying vec3 vColor;
 varying float vDist;
+varying vec2 vXZ;
 void main() {
   vNormal = aNormal;
   vColor = aColor;
   vDist = distance(aPosition, uEye);
+  vXZ = aPosition.xz;
   gl_Position = uViewProj * vec4(aPosition, 1.0);
 }`;
 
+// Fog terms mirror fogFactor() in fog.js.
 const FS = `
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
 precision mediump float;
+#endif
 uniform vec3 uSunDir;
 uniform vec3 uFogColor;
 uniform float uFogDensity;
+uniform vec2 uEdgeMin;
+uniform vec2 uEdgeMax;
+uniform float uEdgeMargin;
 uniform float uOpacity;
 varying vec3 vNormal;
 varying vec3 vColor;
 varying float vDist;
+varying vec2 vXZ;
 void main() {
   vec3 n = normalize(vNormal);
   float sun = max(dot(n, uSunDir), 0.0);
   float sky = 0.5 + 0.5 * n.y;
   vec3 ambient = mix(vec3(0.32, 0.30, 0.26), vec3(0.55, 0.60, 0.70), sky);
   vec3 c = vColor * (ambient + vec3(0.75, 0.72, 0.62) * sun);
-  float fog = 1.0 - exp(-uFogDensity * vDist);
-  gl_FragColor = vec4(mix(c, uFogColor, clamp(fog, 0.0, 1.0)), uOpacity);
+  float distanceFog = 1.0 - exp(-uFogDensity * vDist);
+  vec2 lo = vXZ - uEdgeMin;
+  vec2 hi = uEdgeMax - vXZ;
+  float toEdge = min(min(lo.x, lo.y), min(hi.x, hi.y));
+  float edgeFog = 1.0 - smoothstep(0.0, uEdgeMargin, toEdge);
+  float fog = clamp(max(distanceFog, edgeFog), 0.0, 1.0);
+  gl_FragColor = vec4(mix(c, uFogColor, fog), uOpacity);
 }`;
 
 export const SKY_COLOR = [0.72, 0.82, 0.92];
@@ -69,7 +86,8 @@ export class Renderer {
     this.uintIndices = this.isWebGL2 || !!gl.getExtension('OES_element_index_uint');
     this.canvas = canvas;
     this.meshes = [];
-    this.fogDensity = 0.0025;
+    // Until setFog() is called, edge fog is effectively off (bounds far away).
+    this.fog = fogParams({ min: [-1e6, 0, -1e6], max: [1e6, 0, 1e6] });
 
     const prog = gl.createProgram();
     gl.attachShader(prog, compile(gl, gl.VERTEX_SHADER, VS));
@@ -88,12 +106,20 @@ export class Renderer {
       uSunDir: gl.getUniformLocation(prog, 'uSunDir'),
       uFogColor: gl.getUniformLocation(prog, 'uFogColor'),
       uFogDensity: gl.getUniformLocation(prog, 'uFogDensity'),
+      uEdgeMin: gl.getUniformLocation(prog, 'uEdgeMin'),
+      uEdgeMax: gl.getUniformLocation(prog, 'uEdgeMax'),
+      uEdgeMargin: gl.getUniformLocation(prog, 'uEdgeMargin'),
       uOpacity: gl.getUniformLocation(prog, 'uOpacity'),
     };
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     gl.enable(gl.DEPTH_TEST);
     gl.enable(gl.CULL_FACE);
     gl.cullFace(gl.BACK);
+  }
+
+  /** Fog parameters from fog.js fogParams(scene bounds). */
+  setFog(params) {
+    this.fog = params;
   }
 
   /** Upload normalized meshes (see scene-data.js). */
@@ -150,7 +176,10 @@ export class Renderer {
     const sl = Math.hypot(...sun);
     gl.uniform3f(L.uSunDir, sun[0] / sl, sun[1] / sl, sun[2] / sl);
     gl.uniform3fv(L.uFogColor, SKY_COLOR);
-    gl.uniform1f(L.uFogDensity, this.fogDensity);
+    gl.uniform1f(L.uFogDensity, this.fog.density);
+    gl.uniform2fv(L.uEdgeMin, this.fog.edgeMin);
+    gl.uniform2fv(L.uEdgeMax, this.fog.edgeMax);
+    gl.uniform1f(L.uEdgeMargin, this.fog.margin);
 
     const planes = frustumPlanes(viewProj);
     let drawCalls = 0, triangles = 0;
