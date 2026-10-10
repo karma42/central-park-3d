@@ -31,21 +31,25 @@ Boathouse). The park grid is about 29° off true north, and we ignore that rotat
 
 | Element | Placement (approximate) |
 | --- | --- |
-| Lower terrace / fountain plaza | flat y = 0, x ∈ [−48, 48], z ∈ [−41, 30] |
-| Terrace step (architecture zone) | z ≈ 24…64, \|x\| < 62; landscape keeps out |
-| Upper level, Terrace Drive, the Mall | y = 5.5; Drive at z ≈ 44 (gap \|x\| < 24 for the bridge) |
-| The Mall | central walk 11 m wide along x = 0, z 64…262; four elm rows at x = ±7.5, ±19.5 |
-| Lake | water y = −0.8; coped straight edge at z = −41 for \|x\| ≤ 50, natural banks beyond |
+| Lower terrace / fountain plaza | flat y = 0, x ∈ [−45, 45], z ∈ [−41, 10] |
+| Terrace step (architecture zone) | z ≈ 4…36, \|x\| < 60; landscape keeps trees and paths out |
+| Upper level, Terrace Drive, the Mall | y = 5.5 from z ≈ 16; Drive at z ≈ 23 (gap \|x\| < 24 for the bridge) |
+| The Mall | central walk 11 m wide along x = 0, z 36…262; four elm rows at x = ±7.5, ±19.5 |
+| Lake | water y = −0.8; coped straight edge at z = −41 for \|x\| ≤ 47, natural banks beyond |
+
+These extents follow the numbers proposed by the terrace module (plaza x[−45, 45]
+z[−38, 10], upper terrace / Terrace Drive z[16, 30], Mall from z ≈ 30), so the
+paths meet the stairs. The values live in `LAYOUT` in `src/landscape/layout.js`.
 
 ## Scene statistics (from `node --test`)
 
 ```
 terrain     9,116 vertices  17,850 triangles  (4 m grid, 340 m × 420 m)
-paths       2,256 vertices   2,964 triangles  (11 paths)
-lake-water  1,704 vertices     852 triangles
+paths       2,319 vertices   3,048 triangles  (11 paths)
+lake-water  1,708 vertices     854 triangles
 lake-edge      60 vertices      20 triangles
-trees      62,106 vertices  20,702 triangles  (88 Mall elms + 320 scattered)
-total      75,242 vertices  42,388 triangles
+trees      64,260 vertices  21,420 triangles  (100 Mall elms + 320 scattered)
+total      77,463 vertices  43,192 triangles
 ```
 
 This is small enough for any WebGL1 device. Trees use flat-shaded,

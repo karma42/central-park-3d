@@ -12,14 +12,16 @@ export const LAYOUT = {
   cellSize: 4,
 
   // Lower terrace (fountain plaza): flat pavement at y = 0.
-  plaza: { halfWidth: 48, northZ: -40, southZ: 30 },
+  // Extents agreed with the terrace module (plaza x[-45,45] z[-38,10],
+  // stairs/upper terrace/Terrace Drive z[10,30], Mall from z≈30).
+  plaza: { halfWidth: 45, northZ: -40, southZ: 10 },
 
   // Upper level (Terrace Drive / upper terrace / the Mall).
-  upper: { height: 5.5, startZ: 36 },
+  upper: { height: 5.5, startZ: 16 },
 
   // Zone reserved for terrace architecture (stairs, arcade, drive bridge,
   // upper terrace). Landscape keeps trees and paths out of it.
-  terraceZone: { halfWidth: 62, minZ: 24, maxZ: 64 },
+  terraceZone: { halfWidth: 60, minZ: 4, maxZ: 36 },
 
   lake: {
     waterLevel: -0.8,
@@ -27,13 +29,13 @@ export const LAYOUT = {
     // grid rows (cellSize 4) so the coarse grid drops below water at the wall.
     plazaShoreZ: -41,
     landingDepth: 3.9, // paved lake-edge landing behind the coping
-    copingHalfWidth: 50,
+    copingHalfWidth: 47,
     maxDepth: 3.0,
   },
 
-  mall: { centreX: 0, startZ: 64, endZ: 262, walkWidth: 11, innerRowX: 7.5, outerRowX: 19.5, sidePathX: 13.5, treeSpacing: 9 },
+  mall: { centreX: 0, startZ: 36, endZ: 262, walkWidth: 11, innerRowX: 7.5, outerRowX: 19.5, sidePathX: 13.5, treeSpacing: 9 },
 
-  terraceDrive: { z: 44, width: 9, bridgeHalfSpan: 24 },
+  terraceDrive: { z: 23, width: 9, bridgeHalfSpan: 24 },
 };
 
 // Shore line as z (north edge of land) for a given x. Straight along the
@@ -69,11 +71,11 @@ export function pathDefinitions() {
     { id: 'lakeside-west', surface: 'asphalt', width: 4, points: lakeside(-1) },
     { id: 'lakeside-east', surface: 'asphalt', width: 4, points: lakeside(1) },
     // Paths descending the wooded flanks from the upper level to the lakeside.
-    { id: 'flank-west', surface: 'asphalt', width: 4, points: [[-66, 66], [-80, 40], [-92, 12], [-104, shoreZ(-104) + 7]] },
-    { id: 'flank-east', surface: 'asphalt', width: 4, points: [[66, 66], [80, 40], [92, 12], [104, shoreZ(104) + 7]] },
+    { id: 'flank-west', surface: 'asphalt', width: 4, points: [[-66, 44], [-80, 18], [-92, -4], [-104, shoreZ(-104) + 7]] },
+    { id: 'flank-east', surface: 'asphalt', width: 4, points: [[66, 44], [80, 18], [92, -4], [104, shoreZ(104) + 7]] },
     // Lateral walks along the south end of the Mall toward the flanks.
-    { id: 'mall-cross-west', surface: 'asphalt', width: 4, points: [[-mall.outerRowX - 3, 70], [-66, 66]] },
-    { id: 'mall-cross-east', surface: 'asphalt', width: 4, points: [[mall.outerRowX + 3, 70], [66, 66]] },
+    { id: 'mall-cross-west', surface: 'asphalt', width: 4, points: [[-mall.outerRowX - 3, 48], [-66, 44]] },
+    { id: 'mall-cross-east', surface: 'asphalt', width: 4, points: [[mall.outerRowX + 3, 48], [66, 44]] },
   ];
 }
 

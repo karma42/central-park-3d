@@ -40,7 +40,7 @@ test('ground-like meshes face up (counter-clockwise from above)', () => {
 });
 
 test('plaza is flat at y = 0 and the upper level sits ~5.5 m higher', () => {
-  for (const [x, z] of [[0, 0], [30, -20], [-40, 20], [0, -35]]) assert.ok(Math.abs(heightAt(x, z)) < 1e-6, `plaza at ${x},${z}`);
+  for (const [x, z] of [[0, 0], [30, -20], [-40, 5], [0, -35]]) assert.ok(Math.abs(heightAt(x, z)) < 1e-6, `plaza at ${x},${z}`);
   for (const z of [80, 150, 250]) assert.ok(Math.abs(heightAt(0, z) - LAYOUT.upper.height) < 0.05, `Mall at z=${z}`);
 });
 
