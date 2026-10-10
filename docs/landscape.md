@@ -92,7 +92,7 @@ The landscape fixes made in response to those renders were:
 | Terrain z-fighting with the deck paving | b95edfd / fe5d555 | builder's integration on #2@fe5d555: 65/65 tests, arches open |
 | Green terrain filling the arcade arches | fe5d555 | the same run |
 | Pale strip on the far bank (plaza flattening and paving colour leaked north) | d51f7fa | regression test; builder's re-render on #2@7933b1c (65/65 tests, 86,840 triangles, 5.39 MB): strip gone, arches clear |
-| Scene edge visible in the overview | the viewer's spawn-centred start view (#3@5f371e0) and edge fog within ~40 m of bounds (#3@8568a24) | viewer suite 42/42 on the latest heads; no re-render with fog yet |
+| Scene edge visible in the overview | the viewer's spawn-centred start view (#3@5f371e0) and edge fog within ~40 m of bounds (#3@8568a24) | builder's re-render on #2@926d338 + #3@8568a24 (71/71 tests): the edge is hidden in overview-orbit |
 
 This agent session can only run `node --test`, so it has not produced any images itself.
 
