@@ -27,6 +27,22 @@ export function terrainShoreZ(x) {
 // Gap between terrain and the terrace slab/deck surfaces above it (metres).
 export const SLAB_CLEARANCE = 0.2;
 
+// Highest the ground may be inside the terrace footprint, or null outside it.
+// The terrace masonry is solid from y = 0, so the ground stays under the
+// plaza slab, the deck and the arcade floor. Under the solid upper terrace it
+// stays near deck height, so there is no trench at the Mall entry, except in
+// the Mall stair cut, where it follows the stairs down.
+export function terraceGroundCap(x, z) {
+  const { plaza, upper, mall, terrace } = LAYOUT;
+  const ax = Math.abs(x);
+  if (ax > plaza.halfWidth || z < plaza.northZ - 3 || z > mall.startZ) return null;
+  if (z <= terrace.deckEndZ) return -SLAB_CLEARANCE;
+  if (ax <= terrace.stairCutHalfWidth) {
+    return (upper.height * (z - terrace.deckEndZ)) / (mall.startZ - terrace.deckEndZ) - SLAB_CLEARANCE;
+  }
+  return upper.height - SLAB_CLEARANCE;
+}
+
 // Distance to the nearer Lake bank: > 0 on land, < 0 in the water.
 export function shoreDistance(x, z) {
   return Math.max(z - terrainShoreZ(x), farShoreZ(x) - z);
@@ -58,11 +74,8 @@ export function heightAt(x, z) {
   const ramp = lerp(30, 2, nearPlaza);
   const u = smoothstep(stepEnd - ramp, stepEnd, z);
   let land = lerp(low, high, u);
-  // Inside the terrace footprint keep the ground clearly below the slab and
-  // deck so it never z-fights with their paving.
-  if (ax <= plaza.halfWidth && z >= plaza.northZ && z <= LAYOUT.mall.startZ) {
-    land = Math.min(land, (z <= plaza.southZ ? 0 : upper.height) - SLAB_CLEARANCE);
-  }
+  const cap = terraceGroundCap(x, z);
+  if (cap !== null) land = Math.min(land, cap);
 
   if (s >= 0) return land;
   const depth = Math.min(lake.maxDepth, 0.5 + -s * 0.18);

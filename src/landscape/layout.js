@@ -26,6 +26,11 @@ export const LAYOUT = {
   // terrace). Landscape keeps trees and paths out of it.
   terraceZone: { halfWidth: 58, minZ: 28, maxZ: 66 },
 
+  // Openings in the terrace that expose the ground below deck height: the
+  // arcade under the deck (z 36..50) and the Mall stair cut (|x| < 6.5,
+  // z 50..64), widened to the next terrain grid column.
+  terrace: { deckEndZ: 50, stairCutHalfWidth: 10 },
+
   lake: {
     waterLevel: -0.8,
     // Seawall + balustrade along the plaza's north edge (terrace module).

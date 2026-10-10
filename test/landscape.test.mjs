@@ -76,9 +76,26 @@ test('terrain stays under the terrace slab and deck', () => {
   for (let x = bounds.minX; x <= bounds.maxX; x += cellSize) {
     if (Math.abs(x) > plaza.halfWidth) continue;
     for (let z = bounds.minZ; z <= bounds.maxZ; z += cellSize) {
-      if (z >= plaza.northZ && z <= plaza.southZ) assert.ok(heightAt(x, z) <= -gap, `slab at ${x},${z}: ${heightAt(x, z)}`);
-      if (z > plaza.southZ && z <= mall.startZ) assert.ok(heightAt(x, z) <= upper.height - gap, `deck at ${x},${z}`);
+      const y = heightAt(x, z);
+      // Plaza slab, deck and the arcade beneath it (floor y = 0).
+      if (z >= plaza.northZ && z <= LAYOUT.terrace.deckEndZ) assert.ok(y <= -gap, `slab/arcade at ${x},${z}: ${y}`);
+      if (z > LAYOUT.terrace.deckEndZ && z <= mall.startZ) {
+        assert.ok(y <= upper.height - gap, `upper terrace at ${x},${z}`);
+        // Mall stair cut (|x| < 6.5) descends from the Mall (z 64) to the arcade (z 50).
+        const stairY = (upper.height * (z - 50)) / 14;
+        if (Math.abs(x) < 6.5) assert.ok(y <= stairY - gap, `stair cut at ${x},${z}: ${y}`);
+      }
     }
+  }
+});
+
+test('no trench at the Mall entry south of the upper terrace', () => {
+  const { cellSize, bounds, mall, upper } = LAYOUT;
+  const row = bounds.minZ + Math.ceil((mall.startZ - bounds.minZ) / cellSize) * cellSize;
+  for (let x = -46; x <= 46; x += 4) {
+    if (Math.abs(x) <= LAYOUT.terrace.stairCutHalfWidth) continue;
+    assert.ok(heightAt(x, row - cellSize) >= upper.height - 0.25, `row ${row - cellSize} at x=${x}`);
+    assert.ok(heightAt(x, row) >= upper.height - 0.25, `row ${row} at x=${x}`);
   }
 });
 

@@ -41,7 +41,7 @@ The extents match `TERRACE_LAYOUT` in `src/scene/terrace.js`. The values live in
 | Lower plaza slab, y = 0 | terrace | x ∈ [−50, 50], z ∈ [−42, 36] |
 | Seawall, balustrade, landing steps | terrace | z = −42; steps x ∈ [−6, 6] down to z = −45 |
 | Deck + Terrace Drive, upper terrace, y = 5.5 | terrace | x ∈ [−50, 50], z ∈ [36, 64] |
-| Terrain under the footprint | landscape | kept 0.2 m below the slab (0) and deck (5.5), as covered by a test; coplanar terrain z-fought with the paving in the first stack renders |
+| Terrain under the footprint | landscape | `terraceGroundCap()`: 0.2 m below y = 0 under the plaza, the deck and the arcade (z ≤ 50). It follows the stairs down in the Mall stair cut (\|x\| ≤ 10, z 50–64) and stays 0.2 m below 5.5 under the solid upper terrace, so there is no trench at the Mall entry. Tests cover this. The first stack renders showed z-fighting and green inside the arcade before this change |
 | Terrain beside the deck ends | landscape | rises to about 5.5 by z ≈ 36–40 for \|x\| > 50 |
 | Terrace Drive outside the deck | landscape | 8 m asphalt at z ≈ 43, continuing west/east from \|x\| = 50 |
 | The Mall | landscape | central walk 11 m wide along x = 0, z 64…262; side walks x = ±13.5; four elm rows at x = ±7.5, ±19.5 |
@@ -68,13 +68,13 @@ reduce this by instancing from `trees`.
 node --test test/landscape.test.mjs
 ```
 
-11 tests, all passing. They check that meshes are well formed (finite values,
+12 tests, all passing. They check that meshes are well formed (finite values,
 index ranges, colour ranges) and that terrain, path and water triangles face
 up. They also cover:
 
 - the flat plaza at y = 0 and the Mall at the upper-level height
 - the lake bed below water, with both banks above it and a wooded far shore
-- terrain grid vertices that never rise above the terrace slab or deck
+- terrain grid vertices that stay below the terrace slab, the arcade floor and the stair cut, with no trench at the Mall entry
 - the terrain grid already below water directly in front of the seawall
 - four Mall elm rows clear of the walks
 - scattered-tree exclusions (lake, plaza, terrace zone, Mall, paths) with 7 m spacing
@@ -86,8 +86,8 @@ cp3d-builder rendered the combined #2 + #3 + #4 stack, wired by PR #6, with the
 viewer's renderer (`viewer/tools/render-preview.js`). The PNGs are on branch
 `cp3d-stack-evidence` under `docs/stack-previews/`, and the output is in a
 comment on #3. Those renders used #2 at 62a80c6, which was before the far shore and
-the slab-clearance fix. They showed terrain z-fighting with the deck paving, which
-is now fixed. The scene edge is also visible in the overview view. A re-render is still
+the slab-clearance fix. They showed terrain z-fighting with the deck paving and filling the
+arcade arches. Both are now fixed. The scene edge is also visible in the overview view. A re-render is still
 needed to confirm both changes. This agent session can only run `node --test`.
 
 ## Known limitations and uncertainty
