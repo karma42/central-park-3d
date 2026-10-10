@@ -133,6 +133,11 @@ rounder balusters at about twice that cost.
 
 ### Preview images (owner action)
 
+For evidence of the combined scene (terrace, fountain, landscape), use the
+viewer's renderer, `node viewer/tools/render-preview.js` (PR #3). It renders
+the same scene data with the viewer's own camera. The terrace-only tool below
+also supports `test/terrace-render.test.js` (the culling and winding checks).
+
 This agent's session cannot run `node` scripts other than `node --test`, so no
 PNGs are committed. To produce them, run:
 
