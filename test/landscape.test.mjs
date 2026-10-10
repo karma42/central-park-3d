@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildLandscape, heightAt, walkHeightAt, isInLake, shoreZ, LAYOUT, distanceToPaths } from '../src/landscape/index.js';
+import { buildLandscape, heightAt, walkHeightAt, isInLake, shoreZ, farShoreZ, LAYOUT, distanceToPaths } from '../src/landscape/index.js';
 import { treeExclusion } from '../src/landscape/trees.js';
 
 const scene = buildLandscape();
@@ -52,6 +52,15 @@ test('lake bed is below water and land near the shore is above it', () => {
     if (Math.abs(x) > LAYOUT.lake.landingSteps.halfWidth) assert.ok(isInLake(x, shoreZ(x) - 1));
     assert.ok(!isInLake(x, shoreZ(x) + 1));
   }
+  for (let x = -160; x <= 160; x += 10) {
+    const fz = farShoreZ(x);
+    assert.ok(fz > LAYOUT.bounds.minZ + 30 && fz < shoreZ(x) - 60, `far shore at x=${x}`);
+    assert.ok(heightAt(x, fz - 3) > w, `far bank at x=${x}`);
+    assert.ok(heightAt(x, (fz + shoreZ(x)) / 2) < w - 1, `mid-lake at x=${x}`);
+    assert.ok(isInLake(x, fz + 1) && !isInLake(x, fz - 1));
+  }
+  const ramble = scene.trees.filter((t) => t.z < farShoreZ(t.x));
+  assert.ok(ramble.length >= 40, `wooded far shore: ${ramble.length} trees`);
   assert.ok(!isInLake(0, -44), 'terrace landing steps are walkable');
   assert.ok(isInLake(0, -46) && isInLake(10, -44));
   assert.ok(heightAt(0, -45) < -0.9, 'lake bed below the bottom landing step');

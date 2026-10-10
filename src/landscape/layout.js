@@ -8,7 +8,8 @@
 
 export const LAYOUT = {
   // Scene extent covered by the terrain grid.
-  bounds: { minX: -170, maxX: 170, minZ: -150, maxZ: 270 },
+  // minZ keeps z = -42 (seawall) on a grid row.
+  bounds: { minX: -170, maxX: 170, minZ: -202, maxZ: 270 },
   cellSize: 4,
 
   // Lower terrace (fountain plaza): flat pavement at y = 0.
@@ -36,6 +37,7 @@ export const LAYOUT = {
     // Terrace landing steps descending from the seawall toward the water.
     landingSteps: { halfWidth: 6, minZ: -45 },
     maxDepth: 3.0,
+    farShoreZ: -150, // mean z of the Ramble-side bank (illustrative)
   },
 
   mall: { centreX: 0, startZ: 64, endZ: 262, walkWidth: 11, innerRowX: 7.5, outerRowX: 19.5, sidePathX: 13.5, treeSpacing: 9 },
@@ -54,6 +56,12 @@ export function shoreZ(x) {
   const bulge = 10 * t * t * (3 - 2 * t);
   const wobble = ax > copingHalfWidth ? 2.5 * Math.sin(x * 0.07) * t : 0;
   return plazaShoreZ + bulge + wobble;
+}
+
+// Far (park-north) shore of the Lake, toward the wooded Ramble. Gives the
+// Lake a visible opposite bank instead of running off the scene edge.
+export function farShoreZ(x) {
+  return LAYOUT.lake.farShoreZ + 9 * Math.sin(x / 40 + 0.5) + 4 * Math.cos(x / 17);
 }
 
 // Path network: polylines of [x, z] points with a width and surface type.

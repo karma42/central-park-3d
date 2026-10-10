@@ -1,5 +1,6 @@
-import { LAYOUT, COLORS, shoreZ } from './layout.js';
+import { LAYOUT, COLORS } from './layout.js';
 import { createMesh, addVertex } from './mesh.js';
+import { shoreDistance } from './terrain.js';
 
 // Flat water surface covering every grid cell that touches the Lake.
 // Land terrain above water level hides the parts that run under the banks.
@@ -14,7 +15,7 @@ export function buildWaterMesh() {
     for (let z = bounds.minZ; z < bounds.maxZ; z += cell) {
       const x1 = Math.min(bounds.maxX, x + cell);
       const z1 = Math.min(bounds.maxZ, z + cell);
-      const wet = [[x, z], [x1, z], [x, z1], [x1, z1]].some(([px, pz]) => pz - shoreZ(px) < 6);
+      const wet = [[x, z], [x1, z], [x, z1], [x1, z1]].some(([px, pz]) => shoreDistance(px, pz) < 6);
       if (!wet) continue;
       const base = mesh.positions.length / 3;
       for (const [px, pz] of [[x, z], [x, z1], [x1, z1], [x1, z]]) addVertex(mesh, [px, y, pz], [0, 1, 0], COLORS.water);

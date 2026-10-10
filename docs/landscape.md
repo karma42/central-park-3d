@@ -17,7 +17,7 @@ other agents and are not included here.
 | `paths` | Path polylines with width and surface type |
 | `heightAt(x, z)` | Analytic ground height, including the lake bed |
 | `walkHeightAt(x, z)` | Ground or path-surface height for a walk camera |
-| `isInLake(x, z)` | True north of the shoreline (not walkable); the terrace landing steps (\|x\| ≤ 6, z ≥ −45) count as walkable |
+| `isInLake(x, z)` | True between the near and far shorelines (not walkable); the terrace landing steps (\|x\| ≤ 6, z ≥ −45) count as walkable |
 | `stats` | Vertex/triangle counts per mesh, tree and path counts |
 
 Mesh format: `{ name, material, positions, normals, colors, indices }`, plain
@@ -45,17 +45,17 @@ The extents match `TERRACE_LAYOUT` in `src/scene/terrace.js`. The values live in
 | Terrain beside the deck ends | landscape | rises to about 5.5 by z ≈ 36–40 for \|x\| > 50 |
 | Terrace Drive outside the deck | landscape | 8 m asphalt at z ≈ 43, continuing west/east from \|x\| = 50 |
 | The Mall | landscape | central walk 11 m wide along x = 0, z 64…262; side walks x = ±13.5; four elm rows at x = ±7.5, ±19.5 |
-| Lake | landscape | water y = −0.8; natural banks beyond the seawall, promontory shape |
+| Lake | landscape | water y = −0.8; natural banks beyond the seawall, promontory shape; wooded far (Ramble) bank at z ≈ −150 ± 13, about 100 m across in front of the terrace |
 | Lakeside, flank and cross paths | landscape | illustrative alignments (see `pathDefinitions()`) |
 
 ## Scene statistics (from `node --test`)
 
 ```
-terrain     9,116 vertices  17,850 triangles  (4 m grid, 340 m × 420 m)
+terrain    10,234 vertices  20,060 triangles  (4 m grid, 340 m × 472 m)
 paths       2,172 vertices   2,852 triangles  (11 paths)
-lake-water  1,696 vertices     848 triangles
-trees      61,476 vertices  20,492 triangles  (88 Mall elms + 320 scattered)
-total      74,460 vertices  42,042 triangles
+lake-water  1,844 vertices     922 triangles
+trees      76,626 vertices  25,542 triangles  (88 Mall elms + 420 scattered)
+total      90,876 vertices  49,376 triangles
 ```
 
 This is small enough for any WebGL1 device. Trees use flat-shaded,
@@ -73,7 +73,7 @@ index ranges, colour ranges) and that terrain, path and water triangles face
 up. They also cover:
 
 - the flat plaza at y = 0 and the Mall at the upper-level height
-- the lake bed below water, with banks above it
+- the lake bed below water, with both banks above it and a wooded far shore
 - terrain grid vertices that never rise above the terrace slab or deck
 - the terrain grid already below water directly in front of the seawall
 - four Mall elm rows clear of the walks
@@ -92,8 +92,10 @@ PR #3), which renders the aggregated scene once the scene entry point exists.
   data. Verify against NYC Open Data (park features / planimetrics,
   1 ft contours / DEM), the Central Park Conservancy maps and aerial imagery.
   Record the source, licence and uncertainty in `docs/references.md`.
-- The shoreline is a smooth analytic curve. Bow Bridge (west), Loeb Boathouse
-  (east) and the Ramble shore (north) are out of this milestone's area.
+- Both shorelines are smooth analytic curves. The far bank is a generic
+  wooded slope standing in for the Ramble. The Lake has no east/west ends in
+  this extent, and Bow Bridge (west) and Loeb Boathouse (east) are out of this
+  milestone's area.
 - Path alignments other than the Mall and Terrace Drive are illustrative.
 - Trees are generic low-poly shapes. Scattered trees are placed by a seeded
   random generator and do not reproduce individual real trees.

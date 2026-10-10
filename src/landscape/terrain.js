@@ -1,4 +1,4 @@
-import { LAYOUT, COLORS, shoreZ } from './layout.js';
+import { LAYOUT, COLORS, shoreZ, farShoreZ } from './layout.js';
 import { createMesh, addVertex, normalize, smoothstep, lerp } from './mesh.js';
 
 // Gentle deterministic undulation (sum of sines) for natural lawns/banks.
@@ -24,19 +24,25 @@ export function terrainShoreZ(x) {
   return shoreZ(x) + lake.seawallInset * (1 - smoothstep(plaza.halfWidth, plaza.halfWidth + 6, Math.abs(x)));
 }
 
+// Distance to the nearer Lake bank: > 0 on land, < 0 in the water.
+export function shoreDistance(x, z) {
+  return Math.max(z - terrainShoreZ(x), farShoreZ(x) - z);
+}
+
 // Ground height (metres) at park coordinates (x, z). Includes the lake bed.
 // Terrace architecture (slab, stairs, arcade, deck, fountain) sits on top of
 // this; inside its footprint the ground stays at or below the slab/deck.
 export function heightAt(x, z) {
   const { plaza, upper, lake } = LAYOUT;
   const ax = Math.abs(x);
-  const s = z - terrainShoreZ(x); // > 0 on land, < 0 in the Lake
+  const s = shoreDistance(x, z);
   const p = plazaWeight(x, z);
   const nearPlaza = 1 - smoothstep(plaza.halfWidth, plaza.halfWidth + 14, ax);
   const n = undulation(x, z);
 
-  // Lower ground: lawns/woods sloping down to the shore, flattened on the plaza.
-  let low = 1.2 + 0.9 * n + 0.05 * Math.max(0, z - plaza.northZ) * (1 - nearPlaza);
+  // Lower ground: lawns/woods sloping down to the shore, flattened on the
+  // plaza, and rising gently into the Ramble beyond the far shore.
+  let low = 1.2 + 0.9 * n + 0.05 * Math.max(0, z - plaza.northZ) * (1 - nearPlaza) + 0.06 * Math.max(0, farShoreZ(x) - z);
   low = lerp(0.15, low, smoothstep(0, 14, s));
   low = lerp(low, 0, p);
 
@@ -56,7 +62,7 @@ export function heightAt(x, z) {
 }
 
 export function groundColor(x, z, y) {
-  const s = z - terrainShoreZ(x);
+  const s = shoreDistance(x, z);
   if (s < 0) return COLORS.lakeBed;
   if (plazaWeight(x, z) > 0.5) return COLORS.plaza;
   if (s < 2.5) return COLORS.bank;

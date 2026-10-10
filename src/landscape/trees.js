@@ -1,6 +1,6 @@
 import { LAYOUT, COLORS, shoreZ } from './layout.js';
 import { createMesh, addTriangle, addQuad, mulberry32 } from './mesh.js';
-import { heightAt, plazaWeight } from './terrain.js';
+import { heightAt, plazaWeight, shoreDistance } from './terrain.js';
 import { distanceToPaths } from './paths.js';
 
 // The Mall's four rows of American elms (two either side of the central walk).
@@ -20,7 +20,7 @@ export function mallElmPlacements() {
 export function treeExclusion(x, z) {
   const { bounds, terraceZone: tz, mall } = LAYOUT;
   if (x < bounds.minX + 4 || x > bounds.maxX - 4 || z < bounds.minZ + 4 || z > bounds.maxZ - 4) return 'bounds';
-  if (z - shoreZ(x) < 4) return 'lake';
+  if (shoreDistance(x, z) < 4) return 'lake';
   if (plazaWeight(x, z) > 0.02) return 'plaza';
   if (Math.abs(x) < tz.halfWidth && z > tz.minZ && z < tz.maxZ) return 'terrace';
   if (Math.abs(x) < mall.outerRowX + 6 && z > mall.startZ - 4) return 'mall';
@@ -39,7 +39,7 @@ export function scatteredTreePlacements(count = 320, seed = 1859) {
     const z = bounds.minZ + rng() * (bounds.maxZ - bounds.minZ);
     if (treeExclusion(x, z)) continue;
     // Thin out open lawns in the middle distance so the terrace stays visible from the Lake.
-    if (Math.abs(x) < 90 && z < 20 && rng() < 0.6) continue;
+    if (Math.abs(x) < 90 && z > shoreZ(x) && z < 20 && rng() < 0.6) continue;
     if (out.some((t) => Math.hypot(t.x - x, t.z - z) < minSpacing)) continue;
     const conifer = rng() < 0.12;
     out.push({
