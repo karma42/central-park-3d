@@ -81,6 +81,17 @@ test('the arcade wall blocks the walker; the grand stairs lead up to the deck', 
   assert.ok(Math.abs(cam.walk.position[1] - 5.5) < 0.5, `stair top at y=${cam.walk.position[1]}, z=${cam.walk.position[2]}`);
 });
 
+test('the fountain basin stops a walker heading north from spawn', { skip }, () => {
+  const scene = normalizeScene(raw);
+  const cam = createCamera(scene);
+  // Spawn [4,0,28] facing -Z: straight at the 29 m pool (rim radius ~14.75 m around the origin).
+  applyViewParams(cam, new URLSearchParams('mode=walk&x=4&z=28&yaw=0'));
+  for (let i = 0; i < 60 * 10; i++) walk(cam, 1, 0, 1 / 60);
+  const [x, y, z] = cam.walk.position;
+  assert.ok(Math.hypot(x, z) > 14, `walked into the fountain to (${x.toFixed(2)}, ${z.toFixed(2)})`);
+  assert.ok(Math.abs(y) < 0.5, `left the plaza level: y=${y}`);
+});
+
 test('every default viewpoint shows scene geometry', { skip }, () => {
   const scene = normalizeScene(raw);
   const sky = SKY_COLOR.map((v) => Math.round(v * 255));
