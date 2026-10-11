@@ -4,19 +4,40 @@ Tracking issue: #1. Scene contract: #7. Main evidence: `docs/milestone-1.md` in 
 
 This report was written by an AI agent (Karma42 agent bamba42, operated by Oron, Claude Code / claude-opus-5-5). Its job was to **reproduce** the integrated result on its own and list what the owner still has to check. It doesn't replace #6's evidence, and it claims no human review or approval. The owner approves the outcome.
 
-## Team status for the owner (running; latest update 2026-10-11 09:09 UTC)
+## Team status for the owner (running; latest update 2026-10-11 09:25 UTC)
 
 bamba42 coordinates and reviews at the owner's request. It doesn't take over claimed work or merge anything. #1 is claimed by cp3d-builder; the other agents are contributors.
 
-| Agent | PR | Head | State | Current priority |
-|---|---|---|---|---|
-| cp3d-landscape | #2 | `5ef834d` | Reviewed; no blocking findings | Keep stable. Optional: check that tree trunks don't sit on paths, the plaza or the Lake |
-| cp3d-terrace | #4 | `2f6b48e` | Reviewed; **one gap** | **P1:** make the fountain solid in `terraceHeightAt`. P3: degenerate-triangle cleanup |
-| cp3d-viewer | #3 | `8568a24` | Reviewed; no blocking findings | **P1:** add an integration test that the fountain blocks the walker (after the terrace fix). P3: `HEAD`→`GET` fallback |
-| cp3d-builder | #6 | `0b8c6bc` | Reviewed; minor doc fixes | **P2:** refresh evidence and SHAs after the terrace fix, and tick the finished #7 items. Optional: root redirect |
-| bamba42 | #8 | this PR | Evidence and coordination | Re-verify whenever a head changes |
+### Owner action needed: four fixes are committed locally but not pushed
 
-Scope is frozen to fixes only. Proposed merge order: **#2 → #4 → #3 → #6 → #8**. Open disagreements between agents: none so far.
+The peer agents' sessions **can't run `git push`** because it needs human approval, which their sessions can't get. Their fixes exist only as local branch commits in this machine's repository, so the GitHub PRs still show the older heads. bamba42 doesn't push other agents' branches. To publish them, the owner can run `git push origin <branch>` for each branch in the table, or approve pushing in the agents' next sessions.
+
+| Agent | PR | GitHub head | Local commit (unpushed) | What it does |
+|---|---|---|---|---|
+| cp3d-landscape | #2 | `5ef834d` | `7d6aa85` on `cp3d-landscape-work` | Regression test that no tree trunk (508 trees) stands on a path, the plaza or terrace, or the Lake. Geometry unchanged |
+| cp3d-terrace | #4 | `2f6b48e` | `022802e` on `cp3d-terrace-work` | **Fixes the walkable fountain**: `terraceHeightAt` returns the 0.75 m rim inside the pool. Also removes all zero-area lathe triangles. Adds tests |
+| cp3d-viewer | #3 | `8568a24` | `6227340` on `cp3d-viewer-work` | Retries the scene probe with `GET` when `HEAD` is refused (static hosts), allows page zoom, adds tests |
+| cp3d-builder | #6 | `0b8c6bc` | `b49fa45` on `cp3d-scene-index` | Root `index.html` that redirects to `viewer/`. `docs/milestone-1.md` gets the #2 head and lists the fountain gap |
+
+**bamba42 checked these local commits together** (main plus the four local heads, merged in #7 order with no conflicts, on 2026-10-11):
+- `npm test`: **79/79 pass**, up from 71.
+- `node tools/scene-audit.mjs`: 0 reversed triangles and **0 degenerate** (was 5,098). The scene is now **81,742 triangles** and 5.36 MB.
+- Walking test with the viewer's own `walk()`: starting from the spawn and heading −Z at x = 0, 4 or 10, the walker **stops at the pool edge** (r ≈ 14.8–15.0 m against a pool radius of 14.75 m). Before the fix it walked through.
+- `npm run preview`: four of the five images are byte-identical to #6's. `fountain-orbit.png` differs by a few pixels from the removed degenerate triangles, with no visible change. After the push, cp3d-builder should regenerate it in #6.
+
+Once the owner pushes, the "walk through the fountain" limitation below is resolved.
+
+### Per-agent state
+
+| Agent | Review state | Remaining |
+|---|---|---|
+| cp3d-landscape (#2) | No blocking findings; optional tree check done (`7d6aa85`) | Nothing, apart from the push |
+| cp3d-terrace (#4) | Fountain gap and degenerate triangles fixed in `022802e` and verified above | Nothing, apart from the push |
+| cp3d-viewer (#3) | No blocking findings; P3 items done in `6227340` | Optional: a spawn→fountain integration test in the viewer suite. bamba42's walk simulation covers this for now |
+| cp3d-builder (#6) | Doc fixes done in `b49fa45`; #7 open items ticked | After the pushes: refresh `fountain-orbit.png`, the SHAs and the test count in `docs/milestone-1.md` |
+| bamba42 (#8) | Evidence and coordination | Re-verify once the pushes land |
+
+Scope is frozen to fixes only. Proposed merge order: **#2 → #4 → #3 → #6 → #8**. Open disagreements between agents: none. cp3d-builder agreed that the fountain fix belongs in #4 (`terraceHeightAt`), not in `index.js`.
 
 ## What was checked
 
@@ -90,7 +111,7 @@ Run all of these after merging #2 → #4 → #3 → #6, or on a local merge of t
 ## What's missing or not verified
 
 - **Real-browser run:** not done by any agent. WebGL shader compilation and on-screen output haven't been tested at runtime.
-- **You can walk through the fountain.** `terraceHeightAt()` returns 0 for the whole lower plaza, including the pool (radius about 14.75 m), and `canWalk` only excludes the Lake. In walk mode you can pass through the basin rim, the water and the *Angel of the Waters*. The spawn faces the fountain, so this is the first thing a reviewer pressing W will see. It's reported on #4 and #6. Possible fixes: have `terraceHeightAt` return a rim height inside the pool, which the existing 0.6 m step rule then blocks, or exclude the pool in `canWalk` in `src/scene/index.js`.
+- **You can walk through the fountain at #4 @ `2f6b48e`.** It's fixed in the unpushed `022802e` (see the team status above). `terraceHeightAt()` returns 0 for the whole lower plaza, including the pool (radius about 14.75 m), and `canWalk` only excludes the Lake. In walk mode you can pass through the basin rim, the water and the *Angel of the Waters*. The spawn faces the fountain, so this is the first thing a reviewer pressing W will see. It's reported on #4 and #6. Possible fixes: have `terraceHeightAt` return a rim height inside the pool, which the existing 0.6 m step rule then blocks, or exclude the pool in `canWalk` in `src/scene/index.js`.
 - **Other collisions** come from changes in ground height (a step of more than 0.6 m blocks). Balustrades and trees aren't in the ground height, so they aren't solid.
 - **Accuracy:** dimensions are approximate and haven't been checked against surveys or primary sources. The models are illustrative and low-poly.
 - **Hosting:** out of scope for this milestone. If it comes later, note that the viewer's `HEAD` probe may fail on static hosts that reject `HEAD` (mentioned on #3).
