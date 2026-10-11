@@ -7,6 +7,7 @@
 // -Z points north (toward the Lake), +Z south (toward the Mall), +X east.
 
 import { MeshBuilder, translate } from './terrace-geom.js';
+import { FOUNTAIN_LAYOUT } from './fountain.js';
 
 const FACADE_Z = 36; // north face of the arcade / drive retaining wall
 const HALF_W = 50; // half width of plaza and deck
@@ -47,7 +48,8 @@ const within = (v, [a, b]) => v >= a && v <= b;
  * Walkable surface height of the terrace at plan point (x, z), or null outside
  * the terrace footprint (landscape terrain applies there). Stairs are ramps.
  * The arcade floor (y = 0) wins over the drive deck above it, so walkers can
- * pass from the plaza through the arcade to the Mall stair.
+ * pass from the plaza through the arcade to the Mall stair. The fountain pool
+ * reports its rim height, a step too high to climb, so walkers go around it.
  */
 export function terraceHeightAt(x, z) {
   const L = TERRACE_LAYOUT;
@@ -57,6 +59,7 @@ export function terraceHeightAt(x, z) {
   if (within(x, ls.x) && within(z, ls.z) && z < L.lakeEdgeZ) return ramp(ls.z[0], ls.z[1], ls.bottomY, 0);
   if (!within(x, L.plaza.x)) return null;
   if (within(z, [L.lakeEdgeZ, L.facadeZ])) {
+    if (Math.hypot(x, z) <= FOUNTAIN_LAYOUT.poolOuterRadius) return FOUNTAIN_LAYOUT.poolRimY;
     for (const gs of L.grandStairs) {
       if (within(x, [gs.x[0] + 0.5, gs.x[1] - 0.5]) && z >= gs.z[0]) return ramp(gs.z[0], gs.z[1], 0, Y);
     }

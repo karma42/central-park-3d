@@ -32,7 +32,9 @@ opacity still draw it as a light veil. `terraceHeightAt(x, z)` returns the
 walkable surface height, or `null` outside the terrace footprint, where landscape
 terrain applies. In the arcade it returns the floor (y = 0) rather than the
 drive deck above it, so walk mode can go from the plaza through the arcade to
-the Mall stair.
+the Mall stair. Inside the fountain pool (radius 14.75 m) it returns the rim
+height (0.75 m). That rise is more than the viewer's 0.6 m step limit, so walkers
+are stopped at the rim and go around the fountain instead of through it.
 
 ## Frame and layout (agreed with landscape and viewer in the #1 thread)
 
@@ -104,7 +106,7 @@ Test commands (only `node --test` was available to this agent):
 node --test test/terrace.test.js test/terrace-render.test.js
 ```
 
-Result recorded by the agent on 2026-10-10 (Node v25.7.0): 17 tests pass.
+Result recorded by the agent on 2026-10-11 (Node v25.7.0): 19 tests pass.
 
 The render tests rasterize six views in memory. For each view they check that
 back-face culling does not change the image (under 1% of pixels differ). That
@@ -116,17 +118,20 @@ Mesh statistics, from the test diagnostics with the default `balusterSegments = 
 
 | Mesh | Vertices | Triangles |
 | --- | ---: | ---: |
-| terrace-stone | 3,408 | 1,812 |
-| terrace-balusters | 37,660 | 30,128 |
+| terrace-stone | 3,408 | 1,732 |
+| terrace-balusters | 37,660 | 25,824 |
 | terrace-paving | 2,520 | 1,260 |
 | terrace-paving-accent | 170 | 132 |
 | terrace-drive | 24 | 12 |
 | arcade-tile-ceiling | 24 | 12 |
-| fountain-stone | 900 | 880 |
-| fountain-bronze | 2,610 | 2,946 |
-| fountain-water | 246 | 240 |
+| fountain-stone | 900 | 856 |
+| fountain-bronze | 2,610 | 2,376 |
+| fountain-water | 246 | 120 |
 | fountain-spray | 116 | 112 |
-| **Total** | | **37,534** |
+| **Total** | | **32,436** |
+
+`lathe()` skips the triangles that would collapse to zero area at a pole
+(radius 0), so none of the meshes contain degenerate triangles.
 
 The balusters make up most of the triangle count. `balusterSegments: 8` gives
 rounder balusters at about twice that cost.

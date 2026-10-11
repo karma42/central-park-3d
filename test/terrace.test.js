@@ -116,6 +116,40 @@ test('walk height follows plaza, stairs, arcade and upper terrace', () => {
   assert.equal(terraceHeightAt(0, 80), null);
 });
 
+test('fountain pool blocks walkers with a rim taller than a step', () => {
+  const F = FOUNTAIN_LAYOUT;
+  // The viewer refuses rises above 0.6 m, so the rim height must exceed that.
+  for (const [x, z] of [[0, 10], [0, 0], [F.poolOuterRadius - 0.1, 0], [0, -14], [8, 8]]) {
+    assert.ok(terraceHeightAt(x, z) > 0.6, `pool at (${x}, ${z}) is walkable`);
+  }
+  assert.equal(terraceHeightAt(0, F.poolOuterRadius + 0.3), 0, 'plaza just outside the rim');
+  assert.equal(terraceHeightAt(4, 28), 0, 'viewer spawn stays on the plaza');
+  // Walking north from the spawn, the first rise met is the rim, and it is too tall.
+  let prev = terraceHeightAt(4, 28);
+  for (let z = 28; z > -28; z -= 0.25) {
+    const h = terraceHeightAt(4, z);
+    if (h - prev > 0.6) return;
+    prev = h;
+  }
+  assert.fail('walker from the spawn reached the far side of the fountain');
+});
+
+test('lathe skips zero-area triangles at its poles', () => {
+  const all = [...buildTerrace(), ...buildFountain()];
+  for (const m of all) {
+    const { positions: p, indices: idx } = m;
+    let degenerate = 0;
+    for (let t = 0; t < idx.length; t += 3) {
+      const [a, b, c] = [idx[t] * 3, idx[t + 1] * 3, idx[t + 2] * 3];
+      const e1 = [p[b] - p[a], p[b + 1] - p[a + 1], p[b + 2] - p[a + 2]];
+      const e2 = [p[c] - p[a], p[c + 1] - p[a + 1], p[c + 2] - p[a + 2]];
+      const area = Math.hypot(e1[1] * e2[2] - e1[2] * e2[1], e1[2] * e2[0] - e1[0] * e2[2], e1[0] * e2[1] - e1[1] * e2[0]);
+      if (area < 1e-12) degenerate++;
+    }
+    assert.equal(degenerate, 0, `${m.name}: ${degenerate} zero-area triangles`);
+  }
+});
+
 test('combined terrace and fountain stay within a browser-friendly budget', (t) => {
   const all = [...buildTerrace(), ...buildFountain()];
   for (const m of all) t.diagnostic(`${m.name}: ${m.positions.length / 3} vertices, ${m.indices.length / 3} triangles`);

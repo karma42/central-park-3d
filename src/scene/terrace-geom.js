@@ -187,11 +187,13 @@ export class MeshBuilder {
       }
       return ids;
     };
-    const strip = (lower, upper) => {
+    // A ring of radius 0 is a pole: one triangle of each quad collapses there.
+    const strip = (lower, upper, rLower, rUpper) => {
       for (let s = 0; s < segments; s++) {
         const a = lower[s], b = upper[s], c = upper[s + 1], d = lower[s + 1];
-        this.tri(a, b, c);
-        this.tri(a, c, d);
+        // Sphere poles come out as r ~ 6e-17 from cos(±π/2), hence the tolerance.
+        if (Math.abs(rUpper) > 1e-9) this.tri(a, b, c);
+        if (Math.abs(rLower) > 1e-9) this.tri(a, c, d);
       }
     };
     if (smooth) {
@@ -201,11 +203,12 @@ export class MeshBuilder {
         const n = normalize([prev[0] + next[0], prev[1] + next[1], 0]);
         return ring(r, y, n[0], n[1]);
       });
-      for (let i = 0; i + 1 < rows.length; i++) strip(rows[i], rows[i + 1]);
+      for (let i = 0; i + 1 < rows.length; i++) strip(rows[i], rows[i + 1], profile[i][0], profile[i + 1][0]);
     } else {
       for (let i = 0; i + 1 < profile.length; i++) {
         const [nr, ny] = ringNormals[i];
-        strip(ring(profile[i][0], profile[i][1], nr, ny), ring(profile[i + 1][0], profile[i + 1][1], nr, ny));
+        const [r0, y0] = profile[i], [r1, y1] = profile[i + 1];
+        strip(ring(r0, y0, nr, ny), ring(r1, y1, nr, ny), r0, r1);
       }
     }
     return this;
