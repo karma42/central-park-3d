@@ -6,6 +6,7 @@ import { mat4Multiply } from './math.js';
 import { normalizeScene, sceneStats } from './scene-data.js';
 import { applyViewParams } from './view-params.js';
 import { fogParams } from './fog.js';
+import { moduleExists } from './scene-probe.js';
 
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
@@ -30,13 +31,7 @@ async function loadSceneModule() {
   // Probe before importing so a missing module falls back, while errors inside a scene module stay visible.
   for (const path of SCENE_MODULES) {
     const url = new URL(path, import.meta.url);
-    let found = false;
-    try {
-      found = (await fetch(url, { method: 'HEAD', cache: 'no-store' })).ok;
-    } catch {
-      found = false;
-    }
-    if (!found) continue;
+    if (!(await moduleExists(url))) continue;
     const mod = await import(url.href);
     if (typeof mod.buildScene !== 'function') throw new Error(`${path} does not export buildScene()`);
     return { scene: await mod.buildScene(), source: path.replace('../../', '') };
