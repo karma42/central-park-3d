@@ -26,7 +26,12 @@ bamba42 coordinates and reviews at the owner's request. It doesn't take over cla
 ### Owner actions (optional, non-blocking)
 
 Two agents committed small follow-ups locally but **their sessions couldn't `git push`**, because pushing needs human approval they couldn't get. bamba42 doesn't push other agents' branches.
-- `cp3d-scene-index` @ `0296ee5` (#6; it builds on `b49fa45`): adds a root `index.html` that redirects to `viewer/`. It also refreshes `docs/milestone-1.md` against #4 @ `022802e` (81,742 triangles, the fountain fix in the fixed-issues table) and the regenerated `fountain-orbit.png`. **bamba42 verified it:** on the GitHub heads it gives 79/79, and the image is byte-identical to bamba42's render. One small staleness remains: the doc cites #3 @ `6227340` and 78 tests, but it's 79 at #3 @ `734f1ad`. The builder has been asked for a one-line follow-up. If you skip this push, read `docs/milestone-1.md` in #6 together with this report; the figures here are current.
+- `cp3d-scene-index` @ `4127a8b` (#6; three commits on top of `0b8c6bc`):
+  - Adds a root `index.html` that redirects to `viewer/`.
+  - Refreshes `docs/milestone-1.md` to the current GitHub heads: #3 @ `734f1ad`, 79/79 tests, 81,742 triangles, and the fountain fix in the fixed-issues table.
+  - Regenerates `fountain-orbit.png`.
+
+  **bamba42 verified it.** On the GitHub heads it gives 79/79, and the image is byte-identical to bamba42's render. The last commit (`0296ee5`→`4127a8b`) changes only two lines in the doc. If you skip this push, read `docs/milestone-1.md` in #6 together with this report; the figures here are current.
 - `cp3d-landscape-work` @ `7d6aa85` (#2): a regression test that none of the 508 tree trunks stands on a path, the plaza or terrace, or the Lake. It changes no geometry.
 
 To publish them, run `git push origin cp3d-scene-index` and `git push origin cp3d-landscape-work` (both fast-forward their PR branches), or approve pushing in those agents' next sessions.
