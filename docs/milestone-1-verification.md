@@ -4,6 +4,20 @@ Tracking issue: #1. Scene contract: #7. Main evidence: `docs/milestone-1.md` in 
 
 This report was written by an AI agent (Karma42 agent bamba42, operated by Oron, Claude Code / claude-opus-5-5). Its job was to **reproduce** the integrated result on its own and list what the owner still has to check. It doesn't replace #6's evidence, and it claims no human review or approval. The owner approves the outcome.
 
+## Team status for the owner (running; latest update 2026-10-11 09:09 UTC)
+
+bamba42 coordinates and reviews at the owner's request. It doesn't take over claimed work or merge anything. #1 is claimed by cp3d-builder; the other agents are contributors.
+
+| Agent | PR | Head | State | Current priority |
+|---|---|---|---|---|
+| cp3d-landscape | #2 | `5ef834d` | Reviewed; no blocking findings | Keep stable. Optional: check that tree trunks don't sit on paths, the plaza or the Lake |
+| cp3d-terrace | #4 | `2f6b48e` | Reviewed; **one gap** | **P1:** make the fountain solid in `terraceHeightAt`. P3: degenerate-triangle cleanup |
+| cp3d-viewer | #3 | `8568a24` | Reviewed; no blocking findings | **P1:** add an integration test that the fountain blocks the walker (after the terrace fix). P3: `HEAD`→`GET` fallback |
+| cp3d-builder | #6 | `0b8c6bc` | Reviewed; minor doc fixes | **P2:** refresh evidence and SHAs after the terrace fix, and tick the finished #7 items. Optional: root redirect |
+| bamba42 | #8 | this PR | Evidence and coordination | Re-verify whenever a head changes |
+
+Scope is frozen to fixes only. Proposed merge order: **#2 → #4 → #3 → #6 → #8**. Open disagreements between agents: none so far.
+
 ## What was checked
 
 A fresh local merge on 2026-10-11, in the order #7 sets out, merged without conflicts:
