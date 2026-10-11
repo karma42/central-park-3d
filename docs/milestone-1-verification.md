@@ -4,44 +4,38 @@ Tracking issue: #1. Scene contract: #7. Main evidence: `docs/milestone-1.md` in 
 
 This report was written by an AI agent (Karma42 agent bamba42, operated by Oron, Claude Code / claude-opus-5-5). Its job was to **reproduce** the integrated result on its own and list what the owner still has to check. It doesn't replace #6's evidence, and it claims no human review or approval. The owner approves the outcome.
 
-## Team status for the owner (running; latest update 2026-10-11 09:25 UTC)
+## Team status for the owner (running; latest update 2026-10-11 09:21 UTC)
 
-bamba42 coordinates and reviews at the owner's request. It doesn't take over claimed work or merge anything. #1 is claimed by cp3d-builder; the other agents are contributors.
+bamba42 coordinates and reviews at the owner's request. It doesn't take over claimed work or merge anything. #1 is claimed by cp3d-builder; the other agents are contributors. **All four agents are holding for owner review, and none has pending code work.**
 
-### Latest heads, and an owner action for two of them
+### GitHub PR heads, verified together
 
-| Agent | PR | Head | On GitHub? | What changed |
-|---|---|---|---|---|
-| cp3d-terrace | #4 | `022802e` | **Pushed** | **Fixes the walkable fountain**: `terraceHeightAt` returns the 0.75 m rim inside the pool. Also removes all zero-area lathe triangles. Adds tests |
-| cp3d-viewer | #3 | `6227340` | **Pushed** | Retries the scene probe with `GET` when `HEAD` is refused (static hosts), allows page zoom, adds tests |
-| cp3d-landscape | #2 | `7d6aa85` on `cp3d-landscape-work` | **Not pushed**; #2 still shows `5ef834d` | Regression test that no tree trunk (508 trees) stands on a path, the plaza or terrace, or the Lake. Geometry unchanged |
-| cp3d-builder | #6 | `b49fa45` on `cp3d-scene-index` | **Not pushed**; #6 still shows `0b8c6bc` | Root `index.html` that redirects to `viewer/`. `docs/milestone-1.md` gets the #2 head and lists the fountain gap |
+| PR | Agent | GitHub head | State |
+|---|---|---|---|
+| #2 | cp3d-landscape | `5ef834d` | Reviewed; no blocking findings |
+| #4 | cp3d-terrace | `022802e` | Reviewed. **The fountain is now solid** in walk mode: `terraceHeightAt` returns the 0.75 m rim inside the pool, so the 0.6 m step rule blocks it. All zero-area triangles removed. New tests |
+| #3 | cp3d-viewer | `734f1ad` | Reviewed. `HEAD`→`GET` scene-probe fallback, page zoom allowed, and a new integration test: "the fountain basin stops a walker heading north from spawn" |
+| #6 | cp3d-builder | `0b8c6bc` | Reviewed. Code is correct, but `docs/milestone-1.md` is now **slightly stale** (see the owner actions) |
 
-**Owner action:** the landscape and builder sessions couldn't run `git push` because it needs human approval they can't get. bamba42 doesn't push other agents' branches. To publish the two commits, the owner can run `git push origin cp3d-landscape-work` and `git push origin cp3d-scene-index`, or approve pushing in those agents' next sessions. Neither commit blocks the milestone: one adds a test, the other is doc polish plus the redirect.
+**Result** (main + #2 @ `5ef834d` + #4 @ `022802e` + #3 @ `734f1ad` + #6 @ `0b8c6bc`, merged in #7 order with no conflicts):
+- `npm test`: **79/79 pass**, 0 skipped. That includes both new fountain tests.
+- `node tools/scene-audit.mjs`: 0 reversed and **0 degenerate** triangles (previously 5,098). The scene is **81,742 triangles** and 5.36 MB. Spawn `groundHeight` is 0 and `canWalk` is true.
+- A separate walk simulation with the viewer's `walk()` (from z = 28 toward −Z at x = 0, 4 and 10) stops at the pool edge (r ≈ 14.8–15.0 m).
+- `npm run preview`: four images are byte-identical to the ones committed in #6. `fountain-orbit.png` differs by a few pixels from the removed degenerate triangles, with no visible change.
 
-**bamba42 checked all four heads together** (main plus the four local heads, merged in #7 order with no conflicts, on 2026-10-11):
-- `npm test`: **79/79 pass**, up from 71.
-- `node tools/scene-audit.mjs`: 0 reversed triangles and **0 degenerate** (was 5,098). The scene is now **81,742 triangles** and 5.36 MB.
-- Walking test with the viewer's own `walk()`: starting from the spawn and heading −Z at x = 0, 4 or 10, the walker **stops at the pool edge** (r ≈ 14.8–15.0 m against a pool radius of 14.75 m). Before the fix it walked through.
-- `npm run preview`: four of the five images are byte-identical to #6's. `fountain-orbit.png` differs by a few pixels from the removed degenerate triangles, with no visible change. After the push, cp3d-builder should regenerate it in #6.
+### Owner actions (optional, non-blocking)
 
-Because #4 @ `022802e` is pushed, the "walk through the fountain" limitation below is resolved on GitHub.
+Two agents committed small follow-ups locally but **their sessions couldn't `git push`**, because pushing needs human approval they couldn't get. bamba42 doesn't push other agents' branches.
+- `cp3d-scene-index` @ `b49fa45` (#6): adds a root `index.html` that redirects to `viewer/` and refreshes `docs/milestone-1.md` (#2 head, fountain gap). It was written before the terrace fix, so after pushing, the doc still needs the new numbers: 79 tests and 81,742 triangles, the fountain fixed, and a regenerated `fountain-orbit.png`. If you skip it, read `docs/milestone-1.md` in #6 together with this report; the figures here are current.
+- `cp3d-landscape-work` @ `7d6aa85` (#2): a regression test that none of the 508 tree trunks stands on a path, the plaza or terrace, or the Lake. It changes no geometry.
 
-### Per-agent state
-
-| Agent | Review state | Remaining |
-|---|---|---|
-| cp3d-landscape (#2) | No blocking findings; optional tree check done (`7d6aa85`) | Nothing, apart from the push |
-| cp3d-terrace (#4) | Fountain gap and degenerate triangles fixed in `022802e` (pushed) and verified above | Nothing |
-| cp3d-viewer (#3) | No blocking findings; P3 items done in `6227340` (pushed) | Push the spawn→fountain integration test it has ready, now that #4's fix is on GitHub |
-| cp3d-builder (#6) | Doc fixes done in `b49fa45`; #7 open items ticked | After the pushes: refresh `fountain-orbit.png`, the SHAs and the test count in `docs/milestone-1.md` |
-| bamba42 (#8) | Evidence and coordination | Re-verify when any head changes |
+To publish them, run `git push origin cp3d-scene-index` and `git push origin cp3d-landscape-work`, or approve pushing in those agents' next sessions.
 
 Scope is frozen to fixes only. Proposed merge order: **#2 → #4 → #3 → #6 → #8**. Open disagreements between agents: none. cp3d-builder agreed that the fountain fix belongs in #4 (`terraceHeightAt`), not in `index.js`.
 
 ## What was checked
 
-A fresh local merge on 2026-10-11, in the order #7 sets out, merged without conflicts:
+*This is the **first** check, before the fixes, and it's kept as history. Current figures are in the team status above.* It was a fresh local merge on 2026-10-11, in the order #7 sets out, with no conflicts:
 
 | Order | PR | Part | Head checked |
 |---|---|---|---|
@@ -60,20 +54,20 @@ A fresh local merge on 2026-10-11, in the order #7 sets out, merged without conf
 | `src/scene/index.js` against the #7 entry point | Matches: mesh order, `groundHeight` fallback, `canWalk`, `spawn` |
 | Spawn `[4, 0, 28]` | On the plaza: `groundHeight` = 0, `canWalk` = true |
 | Winding against normals (`node tools/scene-audit.mjs`) | **0 reversed triangles** out of 86,840, so WebGL back-face culling shouldn't hide any face |
-| Degenerate (zero-area) triangles | 5,098 (6%): terrace-balusters 4,304, fountain-bronze 570, fountain-water 120, terrace-stone 80, fountain-stone 24, landscape 0. They're harmless and only cost a little draw time; the cause and a fix are reported on #4 |
+| Degenerate (zero-area) triangles | 5,098 (6%): terrace-balusters 4,304, fountain-bronze 570, fountain-water 120, terrace-stone 80, fountain-stone 24, landscape 0. They're harmless and only cost a little draw time; reported on #4 and **fixed in #4 @ `022802e`** (now 0) |
 
 ### Static review of the browser load path
 
 No agent could launch a browser, so these are code-reading checks, not runtime checks:
 
 - `viewer/index.html` → `viewer/src/main.js` → `../../src/scene/index.js` → terrace, fountain and landscape modules. Every import is a relative ES-module path with a `.js` extension. Nothing under `src/` or `viewer/src/` uses Node-only APIs (`node:`, `process`, `Buffer`).
-- The viewer looks for the scene module with an HTTP `HEAD` request, which `python3 -m http.server` supports. If the module is missing, it shows a clearly labelled placeholder scene instead.
+- The viewer looks for the scene module with an HTTP `HEAD` request, which `python3 -m http.server` supports. Since #3 @ `734f1ad`, it retries with `GET` when `HEAD` is refused. If the module is missing, it shows a clearly labelled placeholder scene instead.
 - The shaders are GLSL ES 1.00 (attribute/varying only, with a fragment precision guard), so they should compile on both WebGL1 and WebGL2.
 - The CPU preview renderer culls back faces with the same counter-clockwise convention as the WebGL path (`render-preview.js:130`), so faces visible in the evidence images should also be visible on screen.
 
 ## Evidence images
 
-These are offline CPU renders made with the viewer's own camera, shading and fog code. They are **not browser screenshots**. The files are committed in #6. The links point to that commit, so they work before #6 merges.
+These are offline CPU renders made with the viewer's own camera, shading and fog code. They are **not browser screenshots**. The files are committed in #6. The links point to that commit, so they work before #6 merges. With the current heads they're still accurate: four are byte-identical, and `fountain-orbit.png` differs only by a few pixels.
 
 | View | Image | Reproduce in the browser |
 |---|---|---|
@@ -97,22 +91,22 @@ What the renders show:
 
 Run all of these after merging #2 → #4 → #3 → #6, or on a local merge of their heads. You need Node 20 or later; there's no `npm install`.
 
-1. `npm test`: expect 71/71 pass.
-2. `node tools/scene-audit.mjs`: expect `reversed 0`. This report adds the file.
-3. `python3 -m http.server 8000`, then open **http://localhost:8000/viewer/**. The root URL only shows a directory listing.
+1. `npm test`: expect 79/79 pass at the heads listed in the team status (more if `7d6aa85` is pushed).
+2. `node tools/scene-audit.mjs`: expect `reversed 0, degenerate 0`. This report adds the file.
+3. `python3 -m http.server 8000`, then open **http://localhost:8000/viewer/**. The root URL only shows a directory listing unless `b49fa45` (the root redirect) is pushed.
 4. In the browser, check the following. **No agent has verified these:**
    - [ ] The status box goes away, there's no yellow placeholder note, and **Help** shows `Scene source: src/scene/index.js`.
    - [ ] The scene looks like the overview image, with no shader error and no console errors.
    - [ ] Orbit mode: drag rotates, wheel zooms, right-drag pans, and **R** resets the view.
-   - [ ] Walk mode (**C**): W/A/S/D moves at eye height on the plaza. The grand stairs climb to the deck, the arcade wall and seawall block you, and the Lake isn't walkable. (Known: the fountain isn't solid yet; see below.)
+   - [ ] Walk mode (**C**): W/A/S/D moves at eye height on the plaza. The grand stairs climb to the deck, the arcade wall, seawall and **fountain basin** block you, and the Lake isn't walkable.
    - [ ] The five URLs above roughly match their images.
    - [ ] On a phone or tablet, if available, touch orbit, pinch and the on-screen walk arrows work.
 
 ## What's missing or not verified
 
 - **Real-browser run:** not done by any agent. WebGL shader compilation and on-screen output haven't been tested at runtime.
-- **You can walk through the fountain at #4 @ `2f6b48e`.** It's fixed in #4 @ `022802e`, which is pushed and verified (see the team status above). `terraceHeightAt()` returns 0 for the whole lower plaza, including the pool (radius about 14.75 m), and `canWalk` only excludes the Lake. In walk mode you can pass through the basin rim, the water and the *Angel of the Waters*. The spawn faces the fountain, so this is the first thing a reviewer pressing W will see. It's reported on #4 and #6. Possible fixes: have `terraceHeightAt` return a rim height inside the pool, which the existing 0.6 m step rule then blocks, or exclude the pool in `canWalk` in `src/scene/index.js`.
-- **Other collisions** come from changes in ground height (a step of more than 0.6 m blocks). Balustrades and trees aren't in the ground height, so they aren't solid.
+- **Fixed during review:** at #4 @ `2f6b48e`, a walker could pass through the fountain basin and the angel. #4 @ `022802e` fixes it, and the new tests in #4 and #3 cover it.
+- **Collisions** come from changes in ground height (a step of more than 0.6 m blocks). Balustrades and trees aren't in the ground height, so they aren't solid.
 - **Accuracy:** dimensions are approximate and haven't been checked against surveys or primary sources. The models are illustrative and low-poly.
-- **Hosting:** out of scope for this milestone. If it comes later, note that the viewer's `HEAD` probe may fail on static hosts that reject `HEAD` (mentioned on #3).
-- **Small cleanups (non-blocking):** about 5.1k degenerate triangles (#4). The #6 doc names #2 @ `926d338` while its head is `5ef834d`, a docs-only difference.
+- **Hosting:** out of scope for this milestone. The `HEAD`-probe concern is handled by #3 @ `734f1ad`.
+- **Stale numbers in #6's doc:** `docs/milestone-1.md` at `0b8c6bc` still gives 71 tests, 86,840 triangles and #2 @ `926d338`. See the owner actions above.
